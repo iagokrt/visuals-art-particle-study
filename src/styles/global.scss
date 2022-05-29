@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow: hidden;
+}
+
+.video {
+  box-sizing: border-box;
+}
+
+body {
+  // cursor: url('../../public/ellipse.png'), pointer;
+
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  color: #f1f1f1;
+
+  overscroll-behavior: none;
+}
+
+#webgl {
+  width: 100vw;
+  height: 100vh;
+}
+
+
+canvas {
+  display: block;
+}
+
+.video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 40vh;
+  height: 68.5vh;
+}
+.video video {
+  width: 100%;
+  opacity: 0;
+}
+
+.video2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  border: 3px solid #fff;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 40vh;
+  height: 68.5vh;
+}
+.video2 video {
+  width: 100%;
+}
+
+.menu {
+  position: absolute;
+  // display: ;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background-color: rgba(32, 34, 133, 0.2);
+
+  border-radius: 4px;
+  box-shadow: 1px 1px 15px #202285;
+
+}
+.menu .list-items {
+  list-style: none;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.menu .list-items li {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.menu .list-items li a {
+  text-decoration: none;
+
+  color: #f1f1f1;
+  font-size: 18px;
+}
+.menu .list-items li a:hover {
+  text-decoration: underline;
+}
