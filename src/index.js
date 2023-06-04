@@ -19,6 +19,7 @@ import './styles/global.scss';
 import texture from '../public/a-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import perro from '../public/perro.jpeg'; 
+import displacement from '../public/displacement.png'; 
 
 import vertex from './shader/vertex.glsl';
 import fragment from './shader/fragment.glsl';
@@ -51,7 +52,8 @@ const shaderSettings3 = {
   vertex: vert,
   fragment: frag,
   uniforms: {
-    texture: perro
+    texture: perro,
+    displacement: displacement
   },
 }
 
@@ -128,11 +130,16 @@ const scene = {
         extensions: {
           derivatives: '#extension GL_OES_standard_derivatives :enable',
         },
+        side: THREE.DoubleSide,
         uniforms: {
           progress: { type : "f", value: 0 },
           image: {
             type: 't',
             value: new THREE.TextureLoader().load(shaderSettings3.uniforms.texture),
+          },
+          displacement: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings3.uniforms.displacement),
           },
           resolution: { type: 'v4', value: new THREE.Vector4() },
           fragColorRate: { type: 'f', value: 0 },
