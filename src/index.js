@@ -125,13 +125,18 @@ const scene = {
       bloomSettings.radius,
       bloomSettings.threshold
     )
+  },
+  background: {
+    default: {
+      color: 0xf1f1f1,
+      a: 1
+    }
   }
 }
 
 export default class Particled {
   constructor(options) {
     this.scene = new THREE.Scene();
-    // this.stats = new Stats();
 
     this.container = options.dom; // document.getElementById('webgl')
     this.width = this.container.offsetWidth;
@@ -140,7 +145,7 @@ export default class Particled {
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setClearColor(0x000000, 1);
+    this.renderer.setClearColor(scene.background.default.color, 1);
     this.renderer.physicallyCorrectLights = true;
 
     this.container.appendChild(this.renderer.domElement);
@@ -149,6 +154,7 @@ export default class Particled {
 
     this.camera.position.set(0, 0, 5050);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
     this.time = 0;
 
     this.menuItems1 = document.querySelector('.link-01');
@@ -170,15 +176,9 @@ export default class Particled {
     this.render();
     this.setupResize();
     this.settings();
-    // this.initStats();
     this.menuSettings();
 
-
   }
-
-  // initStats() {
-  //   document.body.appendChild(this.stats.dom); // console.log('init stats', this.stats)
-  // }
 
   addPostProcessing() {
     this.renderScene = new RenderPass(this.scene, this.camera);
@@ -198,25 +198,20 @@ export default class Particled {
     let that = this;
     this.settings = {
       distortion: 0.0,
-      bloomStrength: .01,
-      fragColor_vUvChannels: 0.4
+      bloomStrength: .67,
     };
 
     this.gui = new dat.GUI();
     
-    this.gui.add(this.settings, 'distortion', 0, 3, 0.01);
-    
-    this.gui.add(this.settings, 'bloomStrength', 0, 5, 0.01);
+    this.gui.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
 
-    // this.gui.add(this.settings, 'fragColor_vUvChannels', 0, 1.0, 0.01);
+    this.folderPost = this.gui.addFolder('Post Processing')
 
+    this.folderPost.add(this.settings, 'distortion', 0, 3, 0.01);
+    // this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.0005);
 
+    this.folderPost.open();
 
-    this.folder = this.gui.addFolder('Camera')
-
-    // gui.add(camera.position, 'x', -500,500).step(5);
-    // gui.add(camera.position, 'y', -500,500).step(5);
-    // gui.add(camera.position, 'z', 1000,5000).step(5);
   }
 
   addToScene(object) {
