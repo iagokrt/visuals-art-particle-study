@@ -255,16 +255,17 @@ export default class Particled {
     this.settings = {
       distortion: 0.0,
       bloomStrength: .00,
+      progress: 0,
     };
 
     this.gui = new dat.GUI();
     
-    this.gui.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
+    this.gui.add(this.settings, 'progress', 0, 1, 0.01);
 
     this.folderPost = this.gui.addFolder('Post Processing')
 
     this.folderPost.add(this.settings, 'distortion', 0, 3, 0.01);
-    // this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.0005);
+    this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
 
     this.folderPost.open();
 
@@ -354,9 +355,9 @@ export default class Particled {
     this.material__w.uniforms.time.value = this.time;
     // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
 
-    // this.perro.rotation.x = this.time / 50;
     this.material__s.uniforms.time.value = this.time;
-    // this.perro.rotation.y = this.time / 100;
+    this.material__s.uniforms.progress.value = this.settings.progress;
+
 
     requestAnimationFrame(this.render.bind(this));
     // this.renderer.render(this.scene, this.camera); // using the composer with bloom post
