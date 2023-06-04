@@ -13,4 +13,5 @@ void main() {
      gl_FragColor = vec4(vUv, 0., 1.);
 
      gl_FragColor = textureUv;
+     if (gl_FragColor.r <0.1 && gl_FragColor.b <0.1 && gl_FragColor.g<0.1) discard;
 }

@@ -36,7 +36,7 @@ const shaderSettings = {
   vertex: vertex,
   fragment: fragment,
   uniforms: {
-    texture: texture,
+    texture: perro,
     // progress: 
   },
 }
@@ -266,7 +266,7 @@ export default class Particled {
     this.gui = new dat.GUI();
     
     this.gui.add(this.settings, 'progress', 0, 1, 0.01);
-    this.gui.add(this.settings, 'distortion', 0, 3, 0.01);
+    this.gui.add(this.settings, 'distortion', 0, 3, 0.002);
 
     this.folderPost = this.gui.addFolder('Post Processing')
     this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
