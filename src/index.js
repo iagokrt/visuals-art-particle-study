@@ -133,6 +133,7 @@ const scene = {
         side: THREE.DoubleSide,
         uniforms: {
           progress: { type : "f", value: 0 },
+          time: { type: 'f', value: 0 },
           image: {
             type: 't',
             value: new THREE.TextureLoader().load(shaderSettings3.uniforms.texture),
@@ -354,6 +355,7 @@ export default class Particled {
     // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
 
     // this.perro.rotation.x = this.time / 50;
+    this.material__s.uniforms.time.value = this.time;
     // this.perro.rotation.y = this.time / 100;
 
     requestAnimationFrame(this.render.bind(this));

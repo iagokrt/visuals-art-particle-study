@@ -1,4 +1,5 @@
 varying vec2 vUv;
+uniform float time;
 uniform sampler2D image;
 
 void main (){
