@@ -18,12 +18,17 @@ import './styles/global.scss';
 
 import texture from '../public/a-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
+import perro from '../public/perro.jpeg'; 
+
 
 import vertex from './shader/vertex.glsl';
 import fragment from './shader/fragment.glsl';
 
 import vertex__w from './shader/waterpassVertex.glsl';
 import fragment__w from './shader/waterpassFragment.glsl';
+
+import vert from './shader/vert.glsl';
+import frag from './shader/frag.glsl';
 
 import {addObjectClickListener} from './component/addObjectClickListener'
 
@@ -53,6 +58,29 @@ const custom_shaderMaterial2 = new THREE.ShaderMaterial({
   fragmentShader: fragment__w,
 });
 
+const custom_shaderMaterial3 = new THREE.ShaderMaterial({
+  extensions: {
+    derivatives: '#extension GL_OES_standard_derivatives :enable',
+  },
+  uniforms: {
+    time: { type: 'f', value: 0 },
+    u_progress: { type: 'f', value: 0 },
+    u_distortion: { type: 'f', value: 0 },
+    u_texture: {
+      type: 't',
+      value: new THREE.TextureLoader().load(perro),
+    },
+    u_resolution: { type: 'v4', value: new THREE.Vector4() },
+    u_fragColorRate: { type: 'f', value: 0 },
+    uvRate1: {
+      value: new THREE.Vector2(1, 1),
+    },
+  },
+  vertexShader: vert,
+  fragmentShader: frag,
+});
+
+
 const bloomSettings = {
   resolution: {
     w: window.innerWidth,
@@ -67,7 +95,8 @@ const scene = {
   objects: {
     names: {
       customPoints: 'red_shader',
-      blueShader: 'blue_shader'
+      blueShader: 'blue_shader',
+      perro: 'perro'
     },
     geometries: {
       plane: new THREE.PlaneBufferGeometry(
@@ -174,6 +203,7 @@ export default class Particled {
 
     this.addRedDistortions();
     this.addWaterEffect();
+    this.addSimpleTexture();
     // this.addLights();
     this.resize();
     this.render();
@@ -238,23 +268,19 @@ export default class Particled {
     })
 
     this.menuItems3.addEventListener('click', () => {
-      alert('empty')
+      alert('new simplex texture loader')
+        this.addToScene(this.perro);
     })
     
   }
 
-  setupResize() {
-    window.addEventListener('resize', this.resize.bind(this));
-  }
+  addSimpleTexture() {
+    this.material__si = custom_shaderMaterial3;
 
-  resize() {
-    this.width = this.container.offsetWidth;
-    this.height = this.container.offsetHeight;
-    this.renderer.setSize(this.width, this.height);
-    this.camera.aspect = this.width / this.height;
+    this.geometry__si = scene.objects.geometries.plane;
 
-    this.camera.updateProjectionMatrix();
-    this.composer.setSize(this.width, this.height);
+    this.perro = new THREE.Points(this.geometry__si, this.material__si);
+    this.perro.name = scene.objects.names.perro;
   }
 
   addWaterEffect() {
@@ -264,7 +290,6 @@ export default class Particled {
 
     this.waterEffect = new THREE.Points(this.geometry__w, this.material__w);
     this.waterEffect.name = scene.objects.names.blueShader;
-
   }
 
   addGenericObject(material, geometry, name) {
@@ -288,17 +313,6 @@ export default class Particled {
     this.scene.add( this.ambient );
   }
 
-  stop() {
-    this.isPlaying = false;
-  }
-
-  play() {
-    if (!this.isPlaying) {
-      this.render();
-      this.isPlaying = true;
-    }
-  }
-
   render() {
     if (!this.isPlaying) return;
 
@@ -315,10 +329,39 @@ export default class Particled {
     this.material__w.uniforms.time.value = this.time;
     // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
 
+    this.material__si.uniforms.time.value = this.time;
+    // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
+
     requestAnimationFrame(this.render.bind(this));
     // this.renderer.render(this.scene, this.camera); // using the composer with bloom post
     this.composer.render();
   }
+
+  setupResize() {
+    window.addEventListener('resize', this.resize.bind(this));
+  }
+
+  resize() {
+    this.width = this.container.offsetWidth;
+    this.height = this.container.offsetHeight;
+    this.renderer.setSize(this.width, this.height);
+    this.camera.aspect = this.width / this.height;
+
+    this.camera.updateProjectionMatrix();
+    this.composer.setSize(this.width, this.height);
+  }
+
+  stop() {
+    this.isPlaying = false;
+  }
+
+  play() {
+    if (!this.isPlaying) {
+      this.render();
+      this.isPlaying = true;
+    }
+  }
+
 }
 
 new Particled({
