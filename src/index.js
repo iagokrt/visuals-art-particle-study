@@ -20,7 +20,6 @@ import texture from '../public/a-end.jpg'; // end frame of video : the texture t
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import perro from '../public/perro.jpeg'; 
 
-
 import vertex from './shader/vertex.glsl';
 import fragment from './shader/fragment.glsl';
 
@@ -32,58 +31,20 @@ import frag from './shader/frag.glsl';
 
 import {addObjectClickListener} from './component/addObjectClickListener'
 
-const custom_shaderMaterial2 = new THREE.ShaderMaterial({
-  extensions: {
-    derivatives: '#extension GL_OES_standard_derivatives :enable',
-  },
-  uniforms: {
-    time: { type: 'f', value: 0 },
-    u_progress: { type: 'f', value: 0 },
-    u_distortion: { type: 'f', value: 0 },
-    u_texture: {
-      type: 't',
-      value: new THREE.TextureLoader().load(texture2),
-    },
-    // u_t2: {
-    //   type: 't',
-    //   value: new THREE.TextureLoader().load(texture2),
-    // },
-    u_resolution: { type: 'v4', value: new THREE.Vector4() },
-    u_fragColorRate: { type: 'f', value: 0 },
-    uvRate1: {
-      value: new THREE.Vector2(1, 1),
-    },
-  },
-  vertexShader: vertex__w,
-  fragmentShader: fragment__w,
-});
-
-const custom_shaderMaterial3 = new THREE.ShaderMaterial({
-  extensions: {
-    derivatives: '#extension GL_OES_standard_derivatives :enable',
-  },
-  uniforms: {
-    time: { type: 'f', value: 0 },
-    u_progress: { type: 'f', value: 0 },
-    u_distortion: { type: 'f', value: 0 },
-    u_texture: {
-      type: 't',
-      value: new THREE.TextureLoader().load(perro),
-    },
-    u_resolution: { type: 'v4', value: new THREE.Vector4() },
-    u_fragColorRate: { type: 'f', value: 0 },
-    uvRate1: {
-      value: new THREE.Vector2(1, 1),
-    },
-  },
-  vertexShader: vert,
-  fragmentShader: frag,
-});
-
-
 const shaderSettings = {
   vertex: vertex,
-  fragment: fragment
+  fragment: fragment,
+  uniforms: {
+    texture: texture
+  },
+}
+
+const shaderSettings2 = {
+  vertex: vertex__w,
+  fragment: fragment__w,
+  uniforms: {
+    texture: texture2
+  },
 }
 
 const bloomSettings = {
@@ -123,7 +84,7 @@ const scene = {
           u_distortion: { type: 'f', value: 0 },
           u_texture: {
             type: 't',
-            value: new THREE.TextureLoader().load(texture),
+            value: new THREE.TextureLoader().load(shaderSettings.uniforms.texture),
           },
           u_resolution: { type: 'v4', value: new THREE.Vector4() },
           u_fragColorRate: { type: 'f', value: 0 },
@@ -133,6 +94,27 @@ const scene = {
         },
         vertexShader: shaderSettings.vertex,
         fragmentShader: shaderSettings.fragment,
+      }),
+      shader2: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        uniforms: {
+          time: { type: 'f', value: 0 },
+          u_progress: { type: 'f', value: 0 },
+          u_distortion: { type: 'f', value: 0 },
+          u_texture: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings2.uniforms.texture),
+          },
+          u_resolution: { type: 'v4', value: new THREE.Vector4() },
+          u_fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: shaderSettings2.vertex,
+        fragmentShader: shaderSettings2.fragment,
       }),
       simpleShader: new THREE.ShaderMaterial({
         extensions: {
@@ -302,7 +284,7 @@ export default class Particled {
   }
 
   addWaterEffect() {
-    this.material__w = custom_shaderMaterial2;
+    this.material__w = scene.objects.materials.shader2;
 
     this.geometry__w = scene.objects.geometries.plane;
 
