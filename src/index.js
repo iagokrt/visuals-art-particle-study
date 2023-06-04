@@ -19,6 +19,8 @@ import './styles/global.scss';
 import texture from '../public/a-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import perro from '../public/perro.png'; 
+import perro2 from '../public/perro2.jpeg'; 
+
 import displacement from '../public/displacement.png'; 
 
 import vertex from './shader/vertex.glsl';
@@ -36,8 +38,9 @@ const shaderSettings = {
   vertex: vertex,
   fragment: fragment,
   uniforms: {
-    texture: perro,
+    texture: perro2,
     // progress: 
+    // distortion:
   },
 }
 
