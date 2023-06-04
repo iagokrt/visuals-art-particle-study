@@ -18,7 +18,7 @@ import './styles/global.scss';
 
 import texture from '../public/a-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
-import perro from '../public/perro.jpeg'; 
+import perro from '../public/perro.png'; 
 import displacement from '../public/displacement.png'; 
 
 import vertex from './shader/vertex.glsl';
@@ -81,7 +81,7 @@ const scene = {
         480,
         820
       ),
-      simplePlane: new THREE.PlaneGeometry( 200, 200, 2, 2 ),
+      simplePlane: new THREE.PlaneGeometry( 1500, 1500, 2, 2 ),
     },
     materials: {
       shader: new THREE.ShaderMaterial({
@@ -207,7 +207,7 @@ export default class Particled {
 
     this.camera = scene.objects.cameras.perspectiveCamera;
 
-    this.camera.position.set(0, 0, 5050);
+    this.camera.position.set(0, 0, 1850);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.time = 0;
