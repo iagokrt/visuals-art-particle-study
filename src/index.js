@@ -18,6 +18,8 @@ import './styles/global.scss';
 
 import texture from '../public/a-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
 import texture2 from '../public/b-end.jpg'; // end frame of video : the texture that will be used itself with the fragment uniforms
+import perro from '../public/perro.png'; 
+import displacement from '../public/displacement.png'; 
 
 import vertex from './shader/vertex.glsl';
 import fragment from './shader/fragment.glsl';
@@ -25,33 +27,35 @@ import fragment from './shader/fragment.glsl';
 import vertex__w from './shader/waterpassVertex.glsl';
 import fragment__w from './shader/waterpassFragment.glsl';
 
+import vert from './shader/vert.glsl';
+import frag from './shader/frag.glsl';
+
 import {addObjectClickListener} from './component/addObjectClickListener'
 
-const custom_shaderMaterial2 = new THREE.ShaderMaterial({
-  extensions: {
-    derivatives: '#extension GL_OES_standard_derivatives :enable',
-  },
+const shaderSettings = {
+  vertex: vertex,
+  fragment: fragment,
   uniforms: {
-    time: { type: 'f', value: 0 },
-    u_progress: { type: 'f', value: 0 },
-    u_distortion: { type: 'f', value: 0 },
-    u_texture: {
-      type: 't',
-      value: new THREE.TextureLoader().load(texture2),
-    },
-    // u_t2: {
-    //   type: 't',
-    //   value: new THREE.TextureLoader().load(texture2),
-    // },
-    u_resolution: { type: 'v4', value: new THREE.Vector4() },
-    u_fragColorRate: { type: 'f', value: 0 },
-    uvRate1: {
-      value: new THREE.Vector2(1, 1),
-    },
+    texture: texture
   },
-  vertexShader: vertex__w,
-  fragmentShader: fragment__w,
-});
+}
+
+const shaderSettings2 = {
+  vertex: vertex__w,
+  fragment: fragment__w,
+  uniforms: {
+    texture: texture2
+  },
+}
+
+const shaderSettings3 = {
+  vertex: vert,
+  fragment: frag,
+  uniforms: {
+    texture: perro,
+    displacement: displacement
+  },
+}
 
 const bloomSettings = {
   resolution: {
@@ -67,7 +71,8 @@ const scene = {
   objects: {
     names: {
       customPoints: 'red_shader',
-      blueShader: 'blue_shader'
+      blueShader: 'blue_shader',
+      perro: 'perro'
     },
     geometries: {
       plane: new THREE.PlaneBufferGeometry(
@@ -75,7 +80,8 @@ const scene = {
         820 * 1.75,
         480,
         820
-      )
+      ),
+      simplePlane: new THREE.PlaneGeometry( 1500, 1500, 2, 2 ),
     },
     materials: {
       shader: new THREE.ShaderMaterial({
@@ -88,7 +94,7 @@ const scene = {
           u_distortion: { type: 'f', value: 0 },
           u_texture: {
             type: 't',
-            value: new THREE.TextureLoader().load(texture),
+            value: new THREE.TextureLoader().load(shaderSettings.uniforms.texture),
           },
           u_resolution: { type: 'v4', value: new THREE.Vector4() },
           u_fragColorRate: { type: 'f', value: 0 },
@@ -96,9 +102,58 @@ const scene = {
             value: new THREE.Vector2(1, 1),
           },
         },
-        vertexShader: vertex,
-        fragmentShader: fragment,
+        vertexShader: shaderSettings.vertex,
+        fragmentShader: shaderSettings.fragment,
+      }),
+      shader2: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        uniforms: {
+          time: { type: 'f', value: 0 },
+          u_progress: { type: 'f', value: 0 },
+          u_distortion: { type: 'f', value: 0 },
+          u_texture: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings2.uniforms.texture),
+          },
+          u_resolution: { type: 'v4', value: new THREE.Vector4() },
+          u_fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: shaderSettings2.vertex,
+        fragmentShader: shaderSettings2.fragment,
+      }),
+      simpleShader: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        side: THREE.DoubleSide,
+        uniforms: {
+          progress: { type : "f", value: 0 },
+          time: { type: 'f', value: 0 },
+          image: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings3.uniforms.texture),
+          },
+          displacement: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings3.uniforms.displacement),
+          },
+          resolution: { type: 'v4', value: new THREE.Vector4() },
+          fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: shaderSettings3.vertex,
+        fragmentShader: shaderSettings3.fragment,
       })
+    },
+    meshes: {
+      // textureMesh: new THREE.Plane(), e.g.
     },
     cameras: {
       default: new THREE.PerspectiveCamera (
@@ -128,7 +183,7 @@ const scene = {
   },
   background: {
     default: {
-      color: 0xf1f1f1,
+      color: 0x000000,
       a: 1
     }
   }
@@ -152,7 +207,7 @@ export default class Particled {
 
     this.camera = scene.objects.cameras.perspectiveCamera;
 
-    this.camera.position.set(0, 0, 5050);
+    this.camera.position.set(0, 0, 1850);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.time = 0;
@@ -171,7 +226,8 @@ export default class Particled {
 
     this.addRedDistortions();
     this.addWaterEffect();
-    // this.addLights();
+    this.addSimpleTexture();
+    this.addLights();
     this.resize();
     this.render();
     this.setupResize();
@@ -198,17 +254,18 @@ export default class Particled {
     let that = this;
     this.settings = {
       distortion: 0.0,
-      bloomStrength: .67,
+      bloomStrength: .00,
+      progress: 0,
     };
 
     this.gui = new dat.GUI();
     
-    this.gui.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
+    this.gui.add(this.settings, 'progress', 0, 1, 0.01);
 
     this.folderPost = this.gui.addFolder('Post Processing')
 
     this.folderPost.add(this.settings, 'distortion', 0, 3, 0.01);
-    // this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.0005);
+    this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
 
     this.folderPost.open();
 
@@ -235,9 +292,76 @@ export default class Particled {
     })
 
     this.menuItems3.addEventListener('click', () => {
-      alert('empty')
+      // alert('new simplex texture loader');
+      console.log('new simplex texture loader');
+      this.addToScene(this.perro);
     })
     
+  }
+
+  addSimpleTexture() {
+    this.geometry__s = scene.objects.geometries.simplePlane;
+
+    this.material__s = scene.objects.materials.simpleShader;
+    // this.material__s = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
+
+    this.perro = new THREE.Mesh( this.geometry__s, this.material__s );
+
+    this.perro.name = scene.objects.names.perro;
+  }
+
+  addWaterEffect() {
+    this.material__w = scene.objects.materials.shader2;
+
+    this.geometry__w = scene.objects.geometries.plane;
+
+    this.waterEffect = new THREE.Points(this.geometry__w, this.material__w);
+    this.waterEffect.name = scene.objects.names.blueShader;
+  }
+
+  addGenericObject(material, geometry, name) {
+    this.material = material;
+    this.geometry = geometry;
+
+    // object
+    this.plane = new THREE.Points(geometry, material);
+    this.plane.name = name;
+  }
+
+  addRedDistortions() {
+    // console.log(`reference this ${this}`, this);
+    
+    this.addGenericObject(scene.objects.materials.shader, scene.objects.geometries.plane, scene.objects.names.customPoints);
+  }
+
+  addLights() {
+    this.ambient = scene.objects.lights.ambient;
+
+    this.scene.add( this.ambient );
+  }
+
+  render() {
+    if (!this.isPlaying) return;
+
+    this.time += 0.05;
+
+    // this.stats.update();
+
+    this.material.uniforms.time.value = this.time;
+    // this.material.uniforms.u_distortion.value = this.settings.distortion;
+
+    this.bloomPass.strength = this.settings.bloomStrength;
+    
+    this.material__w.uniforms.time.value = this.time;
+    // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
+
+    this.material__s.uniforms.time.value = this.time;
+    this.material__s.uniforms.progress.value = this.settings.progress;
+
+
+    requestAnimationFrame(this.render.bind(this));
+    // this.renderer.render(this.scene, this.camera); // using the composer with bloom post
+    this.composer.render();
   }
 
   setupResize() {
@@ -254,33 +378,6 @@ export default class Particled {
     this.composer.setSize(this.width, this.height);
   }
 
-  addWaterEffect() {
-    this.material__w = custom_shaderMaterial2;
-
-    this.geometry__w = scene.objects.geometries.plane;
-
-    this.waterEffect = new THREE.Points(this.geometry__w, this.material__w);
-    this.waterEffect.name = scene.objects.names.blueShader;
-
-  }
-
-  addRedDistortions() {
-
-    this.material = scene.objects.materials.shader;
-
-    this.geometry = scene.objects.geometries.plane;
-
-    this.plane = new THREE.Points(this.geometry, this.material);
-    this.plane.name = scene.objects.names.customPoints;
-
-  }
-
-  addLights() {
-    this.ambient = scene.objects.lights.ambient;
-
-    this.scene.add( this.ambient );
-  }
-
   stop() {
     this.isPlaying = false;
   }
@@ -292,26 +389,6 @@ export default class Particled {
     }
   }
 
-  render() {
-    if (!this.isPlaying) return;
-
-    this.time += 0.05;
-
-    // this.stats.update();
-
-    this.material.uniforms.time.value = this.time;
-    // this.material.uniforms.u_distortion.value = this.settings.distortion;
-
-    this.bloomPass.strength = this.settings.bloomStrength;
-
-    
-    this.material__w.uniforms.time.value = this.time;
-    // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
-
-    requestAnimationFrame(this.render.bind(this));
-    // this.renderer.render(this.scene, this.camera); // using the composer with bloom post
-    this.composer.render();
-  }
 }
 
 new Particled({

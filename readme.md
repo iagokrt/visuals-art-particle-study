@@ -114,3 +114,25 @@ const scene = {
   }
 }
 ```
+
+## Basic Shader uvs
+
+```glsl 
+// vertex
+varying vec2 vUv;
+
+void main (){
+  vUv = uv;
+
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+
+  gl_PointSize = 15. * (1./-mvPosition.z);
+  gl_Position = projectionMatrix * mvPosition;
+}
+// fragment
+varying vec2 vUv;
+
+void main() {
+  gl_FragColor = vec4(1., 0., 0., 1.);
+}
+```
