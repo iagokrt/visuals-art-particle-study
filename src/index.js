@@ -47,6 +47,14 @@ const shaderSettings2 = {
   },
 }
 
+const shaderSettings3 = {
+  vertex: vert,
+  fragment: frag,
+  uniforms: {
+    texture: perro
+  },
+}
+
 const bloomSettings = {
   resolution: {
     w: window.innerWidth,
@@ -71,7 +79,7 @@ const scene = {
         480,
         820
       ),
-      simplePlane: new THREE.PlaneGeometry( 100,100 ),
+      simplePlane: new THREE.PlaneGeometry( 200, 200, 2, 2 ),
     },
     materials: {
       shader: new THREE.ShaderMaterial({
@@ -120,11 +128,20 @@ const scene = {
         extensions: {
           derivatives: '#extension GL_OES_standard_derivatives :enable',
         },
-        vertexShader: vert,
-        fragmentShader: frag,
         uniforms: {
-          progress: { type : "f", value: 0 }
-        }
+          progress: { type : "f", value: 0 },
+          image: {
+            type: 't',
+            value: new THREE.TextureLoader().load(shaderSettings3.uniforms.texture),
+          },
+          resolution: { type: 'v4', value: new THREE.Vector4() },
+          fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: shaderSettings3.vertex,
+        fragmentShader: shaderSettings3.fragment,
       })
     },
     meshes: {
@@ -266,8 +283,9 @@ export default class Particled {
     })
 
     this.menuItems3.addEventListener('click', () => {
-      alert('new simplex texture loader')
-        this.addToScene(this.perro);
+      // alert('new simplex texture loader');
+      console.log('new simplex texture loader');
+      this.addToScene(this.perro);
     })
     
   }
@@ -275,8 +293,8 @@ export default class Particled {
   addSimpleTexture() {
     this.geometry__s = scene.objects.geometries.simplePlane;
 
-    // this.material__s = scene.objects.materials.simpleShader;
-    this.material__s = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
+    this.material__s = scene.objects.materials.simpleShader;
+    // this.material__s = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
 
     this.perro = new THREE.Mesh( this.geometry__s, this.material__s );
 

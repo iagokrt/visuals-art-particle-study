@@ -1,4 +1,5 @@
 varying vec2 vUv;
+uniform sampler2D image;
 
 void main (){
   vUv = uv;
