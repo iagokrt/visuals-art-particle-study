@@ -100,6 +100,9 @@ const scene = {
         fragmentShader: fragment,
       })
     },
+    meshes: {
+      // textureMesh: new THREE.Plane(), e.g.
+    },
     cameras: {
       default: new THREE.PerspectiveCamera (
         70,
@@ -128,7 +131,7 @@ const scene = {
   },
   background: {
     default: {
-      color: 0xf1f1f1,
+      color: 0x000000,
       a: 1
     }
   }
@@ -198,7 +201,7 @@ export default class Particled {
     let that = this;
     this.settings = {
       distortion: 0.0,
-      bloomStrength: .67,
+      bloomStrength: .00,
     };
 
     this.gui = new dat.GUI();
@@ -264,14 +267,26 @@ export default class Particled {
 
   }
 
+  addGenericObject(material, geometry, name) {
+    this.material = material;
+    this.geometry = geometry;
+
+    // object
+    this.plane = new THREE.Points(geometry, material);
+    this.plane.name = name;
+  }
+
   addRedDistortions() {
-
-    this.material = scene.objects.materials.shader;
-
-    this.geometry = scene.objects.geometries.plane;
-
-    this.plane = new THREE.Points(this.geometry, this.material);
-    this.plane.name = scene.objects.names.customPoints;
+    console.log('add');
+    console.log(`reference this ${this}`, this);
+    
+    this.addGenericObject(scene.objects.materials.shader, scene.objects.geometries.plane, scene.objects.names.customPoints);
+    /* previous method adding to scene 
+      this.material = scene.objects.materials.shader;
+      this.geometry = scene.objects.geometries.plane;
+      this.plane = new THREE.Points(this.geometry, this.material);
+      this.plane.name = scene.objects.names.customPoints; 
+    */
 
   }
 
