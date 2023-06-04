@@ -1,8 +1,9 @@
 uniform float time;
+uniform float u_progress;
 varying vec2 vUv;
 varying vec3 vPosition;
 uniform sampler2D u_texture;
-uniform float u_distortion;
+uniform float distortion;
 float PI = 3.141592653589793238;
 
 
@@ -196,13 +197,13 @@ vec3 curlNoise( vec3 p ){
 void main() {
     vUv = uv;
 
-    vec3 distortion = vec3(position) * curlNoise(vec3(
-      position.x*0.004 - time*0.009,
-      position.y*0.002 + time*0.002, 
+    vec3 distortionNoise = vec3(position.x*2., position.y,1.) * curlNoise(vec3(
+      position.x*0.002 + time*0.2,
+      position.y*0.008, 
       0.
-    ));
+    ))*distortion;
 
-    vec3 finalPosition = position + distortion;
+    vec3 finalPosition = position + distortionNoise;
 
     vec4 mvPosition = modelViewMatrix * vec4( finalPosition, 1. );
     gl_PointSize = 1.;

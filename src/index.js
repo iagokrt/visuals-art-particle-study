@@ -36,7 +36,8 @@ const shaderSettings = {
   vertex: vertex,
   fragment: fragment,
   uniforms: {
-    texture: texture
+    texture: texture,
+    // progress: 
   },
 }
 
@@ -91,7 +92,7 @@ const scene = {
         uniforms: {
           time: { type: 'f', value: 0 },
           u_progress: { type: 'f', value: 0 },
-          u_distortion: { type: 'f', value: 0 },
+          distortion: { type: 'f', value: 0 },
           u_texture: {
             type: 't',
             value: new THREE.TextureLoader().load(shaderSettings.uniforms.texture),
@@ -186,7 +187,10 @@ const scene = {
       color: 0x000000,
       a: 1
     }
-  }
+  },
+  // settings: {
+    
+  // }
 }
 
 export default class Particled {
@@ -215,6 +219,7 @@ export default class Particled {
     this.menuItems1 = document.querySelector('.link-01');
     this.menuItems2 = document.querySelector('.link-02');
     this.menuItems3 = document.querySelector('.link-03');
+    this.menuItems4 = document.querySelector('.link-04');
 
     // video events (timeline)
     // this.video = document.getElementById('video1');
@@ -261,10 +266,9 @@ export default class Particled {
     this.gui = new dat.GUI();
     
     this.gui.add(this.settings, 'progress', 0, 1, 0.01);
+    this.gui.add(this.settings, 'distortion', 0, 3, 0.01);
 
     this.folderPost = this.gui.addFolder('Post Processing')
-
-    this.folderPost.add(this.settings, 'distortion', 0, 3, 0.01);
     this.folderPost.add(this.settings, 'bloomStrength', 0, 2.5, 0.005);
 
     this.folderPost.open();
@@ -297,6 +301,10 @@ export default class Particled {
       this.addToScene(this.perro);
     })
     
+    this.menuItems4.addEventListener('click', () => {
+      this.removeFromScene(this.plane);
+    })
+
   }
 
   addSimpleTexture() {
@@ -319,19 +327,34 @@ export default class Particled {
     this.waterEffect.name = scene.objects.names.blueShader;
   }
 
-  addGenericObject(material, geometry, name) {
-    this.material = material;
-    this.geometry = geometry;
+  // addGenericObject(material, geometry, name) {
+  //   this.material = material;
+  //   this.geometry = geometry;
 
-    // object
-    this.plane = new THREE.Points(geometry, material);
-    this.plane.name = name;
+  //   // object
+  //   this.plane = new THREE.Points(geometry, material);
+  //   this.plane.name = name;
+  //   this.addToScene(this.plane);
+  // }
+
+  addDistortionParticles() {
+    this.material = scene.objects.materials.shader;
+
+    this.geometry = scene.objects.geometries.plane;
+
+    this.plane = new THREE.Points(this.geometry, this.material);
+
+    this.plane.name = scene.objects.names.customPoints;
+
+    this.scene.add(this.plane);
   }
 
   addRedDistortions() {
     // console.log(`reference this ${this}`, this);
     
-    this.addGenericObject(scene.objects.materials.shader, scene.objects.geometries.plane, scene.objects.names.customPoints);
+    this.addDistortionParticles();
+
+    // this.addGenericObject(scene.objects.materials.shader, scene.objects.geometries.plane, scene.objects.names.customPoints);
   }
 
   addLights() {
@@ -348,12 +371,12 @@ export default class Particled {
     // this.stats.update();
 
     this.material.uniforms.time.value = this.time;
-    // this.material.uniforms.u_distortion.value = this.settings.distortion;
+    this.material.uniforms.distortion.value = this.settings.distortion;
 
+    // bloom 
     this.bloomPass.strength = this.settings.bloomStrength;
     
     this.material__w.uniforms.time.value = this.time;
-    // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
 
     this.material__s.uniforms.time.value = this.time;
     this.material__s.uniforms.progress.value = this.settings.progress;

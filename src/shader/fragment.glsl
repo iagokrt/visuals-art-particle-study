@@ -2,7 +2,7 @@ uniform float time;
 uniform float u_progress;
 uniform sampler2D u_texture;
 uniform vec4 u_resolution;
-// uniform float u_fragColorRate;
+uniform float distortion;
 
 varying vec2 vUv;
 varying vec3 vPosition;
