@@ -53,6 +53,16 @@ const custom_shaderMaterial2 = new THREE.ShaderMaterial({
   fragmentShader: fragment__w,
 });
 
+const bloomSettings = {
+  resolution: {
+    w: window.innerWidth,
+    h: window.innerHeight
+  }, 
+  strength: 1.5, 
+  radius: 0.4, 
+  threshold: 0.85
+}
+
 const scene = {
   objects: {
     names: {
@@ -80,10 +90,6 @@ const scene = {
             type: 't',
             value: new THREE.TextureLoader().load(texture),
           },
-          // u_t2: {
-          //   type: 't',
-          //   value: new THREE.TextureLoader().load(texture2),
-          // },
           u_resolution: { type: 'v4', value: new THREE.Vector4() },
           u_fragColorRate: { type: 'f', value: 0 },
           uvRate1: {
@@ -93,7 +99,32 @@ const scene = {
         vertexShader: vertex,
         fragmentShader: fragment,
       })
+    },
+    cameras: {
+      default: new THREE.PerspectiveCamera (
+        70,
+        window.innerWidth / window.innerHeight,
+        0.001,
+        5000
+      ),
+      perspectiveCamera: new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.001,
+        5000
+      )
+    },
+    lights: {
+      ambient: new THREE.AmbientLight(0x00ff00, 1)
     }
+  },
+  postProcessing: {
+    bloomPass: new UnrealBloomPass(
+      new THREE.Vector2(bloomSettings.resolution.w, bloomSettings.resolution.h),
+      bloomSettings.strength,
+      bloomSettings.radius,
+      bloomSettings.threshold
+    )
   }
 }
 
@@ -114,12 +145,7 @@ export default class Particled {
 
     this.container.appendChild(this.renderer.domElement);
 
-    this.camera = new THREE.PerspectiveCamera(
-      70,
-      window.innerWidth / window.innerHeight,
-      0.001,
-      5000
-    );
+    this.camera = scene.objects.cameras.perspectiveCamera;
 
     this.camera.position.set(0, 0, 5050);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -139,7 +165,7 @@ export default class Particled {
 
     this.addRedDistortions();
     this.addWaterEffect();
-    this.addLights();
+    // this.addLights();
     this.resize();
     this.render();
     this.setupResize();
@@ -157,12 +183,8 @@ export default class Particled {
   addPostProcessing() {
     this.renderScene = new RenderPass(this.scene, this.camera);
 
-    this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.5,
-      0.4,
-      0.85
-    );
+    this.bloomPass = scene.postProcessing.bloomPass;
+
     this.bloomPass.threshold = this.settings.bloomThreshold;
     this.bloomPass.strength = this.settings.bloomStrength;
     this.bloomPass.radius = this.settings.bloomRadius;
@@ -197,33 +219,30 @@ export default class Particled {
     // gui.add(camera.position, 'z', 1000,5000).step(5);
   }
 
+  addToScene(object) {
+    this.scene.add(object);
+  }
+
+  removeFromScene(object) {
+    this.scene.remove(object);
+  }
+
   menuSettings() {
     this.menuItems1.addEventListener('click', () => {
-      // Default Image into Particles Video
-      if (this.scene.getObjectByName('blue_shader')) { // if it manages to find the blue shader object
-        this.scene.remove(this.waterEffect);
-      }
-      this.scene.add(this.plane);
+      this.addToScene(this.plane);
     })
     
     this.menuItems2.addEventListener('click', () => {
-      
-      if (this.scene.getObjectByName('blue_shader')) { // if it manages to find the blue shader object
-        this.scene.remove(this.waterEffect);
-      }
-
-      if (this.scene.getObjectByName('red_shader')) { // if it manages to find the blue shader object
-        this.scene.remove(this.plane);
-      }
-     
+      if (this.scene.getObjectByName(scene.objects.names.customPoints)) { 
+        this.removeFromScene(this.plane);
+        this.addToScene(this.waterEffect);
+      } 
     })
 
     this.menuItems3.addEventListener('click', () => {
-      if (this.scene.getObjectByName('red_shader')) { // if it manages to find the blue shader object
-        this.scene.remove(this.plane);
-      }
-      this.scene.add(this.waterEffect);
+      alert('empty')
     })
+    
   }
 
   setupResize() {
@@ -241,7 +260,7 @@ export default class Particled {
   }
 
   addWaterEffect() {
-    this.material__w = custom_shaderMaterial2
+    this.material__w = custom_shaderMaterial2;
 
     this.geometry__w = scene.objects.geometries.plane;
 
@@ -262,10 +281,7 @@ export default class Particled {
   }
 
   addLights() {
-    this.ambient = new THREE.AmbientLight(0x00ff00, 1);
-    // this.pointLight__ = new THREE.PointLight( 0xff0000, 1, 100 );
-    // this.pointLight__.position.set( 0, 0, 0 );
-
+    this.ambient = scene.objects.lights.ambient;
 
     this.scene.add( this.ambient );
   }

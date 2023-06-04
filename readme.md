@@ -34,3 +34,83 @@ const custom_shaderMaterial = new THREE.ShaderMaterial({
 
 
 ```
+
+
+## Scene definitions
+
+```js
+const bloomSettings = {
+  resolution: {
+    w: window.innerWidth,
+    h: window.innerHeight
+  }, 
+  strength: 1.5, 
+  radius: 0.4, 
+  threshold: 0.85
+}
+
+const scene = {
+  objects: {
+    names: {
+      customPoints: 'red_shader',
+      blueShader: 'blue_shader'
+    },
+    geometries: {
+      plane: new THREE.PlaneBufferGeometry(
+        480 * 1.75,
+        820 * 1.75,
+        480,
+        820
+      )
+    },
+    materials: {
+      shader: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        uniforms: {
+          time: { type: 'f', value: 0 },
+          u_progress: { type: 'f', value: 0 },
+          u_distortion: { type: 'f', value: 0 },
+          u_texture: {
+            type: 't',
+            value: new THREE.TextureLoader().load(texture),
+          },
+          u_resolution: { type: 'v4', value: new THREE.Vector4() },
+          u_fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: vertex,
+        fragmentShader: fragment,
+      })
+    },
+    cameras: {
+      default: new THREE.PerspectiveCamera (
+        70,
+        window.innerWidth / window.innerHeight,
+        0.001,
+        5000
+      ),
+      perspectiveCamera: new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.001,
+        5000
+      )
+    },
+    lights: {
+      ambient: new THREE.AmbientLight(0x00ff00, 1)
+    }
+  },
+  postProcessing: {
+    bloomPass: new UnrealBloomPass(
+      new THREE.Vector2(bloomSettings.resolution.w, bloomSettings.resolution.h),
+      bloomSettings.strength,
+      bloomSettings.radius,
+      bloomSettings.threshold
+    )
+  }
+}
+```
