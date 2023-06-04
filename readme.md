@@ -115,24 +115,24 @@ const scene = {
 }
 ```
 
-## Basic Shader display Texture
+## Basic Shader uvs
 
 ```glsl 
-// fragment
-uniform float time;
-uniform float u_progress;
-uniform sampler2D u_texture;
-uniform vec4 u_resolution;
-// uniform float u_fragColorRate;
-
+// vertex
 varying vec2 vUv;
-varying vec3 vPosition;
-float PI = 3.141592653589793238;
+
+void main (){
+  vUv = uv;
+
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+
+  gl_PointSize = 15. * (1./-mvPosition.z);
+  gl_Position = projectionMatrix * mvPosition;
+}
+// fragment
+varying vec2 vUv;
+
 void main() {
-
-     vec4 textureUv = texture2D(u_texture, vUv);
-     gl_FragColor = vec4(vUv, 0., 1.);
-
-     gl_FragColor = textureUv;
+  gl_FragColor = vec4(1., 0., 0., 1.);
 }
 ```

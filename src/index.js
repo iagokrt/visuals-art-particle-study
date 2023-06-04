@@ -81,6 +81,11 @@ const custom_shaderMaterial3 = new THREE.ShaderMaterial({
 });
 
 
+const shaderSettings = {
+  vertex: vertex,
+  fragment: fragment
+}
+
 const bloomSettings = {
   resolution: {
     w: window.innerWidth,
@@ -104,7 +109,8 @@ const scene = {
         820 * 1.75,
         480,
         820
-      )
+      ),
+      simplePlane: new THREE.PlaneGeometry( 100,100 ),
     },
     materials: {
       shader: new THREE.ShaderMaterial({
@@ -125,8 +131,18 @@ const scene = {
             value: new THREE.Vector2(1, 1),
           },
         },
-        vertexShader: vertex,
-        fragmentShader: fragment,
+        vertexShader: shaderSettings.vertex,
+        fragmentShader: shaderSettings.fragment,
+      }),
+      simpleShader: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        vertexShader: vert,
+        fragmentShader: frag,
+        uniforms: {
+          progress: { type : "f", value: 0 }
+        }
       })
     },
     meshes: {
@@ -204,7 +220,7 @@ export default class Particled {
     this.addRedDistortions();
     this.addWaterEffect();
     this.addSimpleTexture();
-    // this.addLights();
+    this.addLights();
     this.resize();
     this.render();
     this.setupResize();
@@ -275,11 +291,13 @@ export default class Particled {
   }
 
   addSimpleTexture() {
-    this.material__si = custom_shaderMaterial3;
+    this.geometry__s = scene.objects.geometries.simplePlane;
 
-    this.geometry__si = scene.objects.geometries.plane;
+    // this.material__s = scene.objects.materials.simpleShader;
+    this.material__s = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
 
-    this.perro = new THREE.Points(this.geometry__si, this.material__si);
+    this.perro = new THREE.Mesh( this.geometry__s, this.material__s );
+
     this.perro.name = scene.objects.names.perro;
   }
 
@@ -324,13 +342,12 @@ export default class Particled {
     // this.material.uniforms.u_distortion.value = this.settings.distortion;
 
     this.bloomPass.strength = this.settings.bloomStrength;
-
     
     this.material__w.uniforms.time.value = this.time;
     // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
 
-    this.material__si.uniforms.time.value = this.time;
-    // this.material__w.uniforms.u_distortion.value = this.settings.distortion;
+    // this.perro.rotation.x = this.time / 50;
+    // this.perro.rotation.y = this.time / 100;
 
     requestAnimationFrame(this.render.bind(this));
     // this.renderer.render(this.scene, this.camera); // using the composer with bloom post
