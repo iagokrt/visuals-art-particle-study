@@ -277,17 +277,9 @@ export default class Particled {
   }
 
   addRedDistortions() {
-    console.log('add');
-    console.log(`reference this ${this}`, this);
+    // console.log(`reference this ${this}`, this);
     
     this.addGenericObject(scene.objects.materials.shader, scene.objects.geometries.plane, scene.objects.names.customPoints);
-    /* previous method adding to scene 
-      this.material = scene.objects.materials.shader;
-      this.geometry = scene.objects.geometries.plane;
-      this.plane = new THREE.Points(this.geometry, this.material);
-      this.plane.name = scene.objects.names.customPoints; 
-    */
-
   }
 
   addLights() {
