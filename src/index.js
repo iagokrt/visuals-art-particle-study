@@ -27,6 +27,76 @@ import fragment__w from './shader/waterpassFragment.glsl';
 
 import {addObjectClickListener} from './component/addObjectClickListener'
 
+const custom_shaderMaterial2 = new THREE.ShaderMaterial({
+  extensions: {
+    derivatives: '#extension GL_OES_standard_derivatives :enable',
+  },
+  uniforms: {
+    time: { type: 'f', value: 0 },
+    u_progress: { type: 'f', value: 0 },
+    u_distortion: { type: 'f', value: 0 },
+    u_texture: {
+      type: 't',
+      value: new THREE.TextureLoader().load(texture2),
+    },
+    // u_t2: {
+    //   type: 't',
+    //   value: new THREE.TextureLoader().load(texture2),
+    // },
+    u_resolution: { type: 'v4', value: new THREE.Vector4() },
+    u_fragColorRate: { type: 'f', value: 0 },
+    uvRate1: {
+      value: new THREE.Vector2(1, 1),
+    },
+  },
+  vertexShader: vertex__w,
+  fragmentShader: fragment__w,
+});
+
+const scene = {
+  objects: {
+    names: {
+      customPoints: 'red_shader',
+      blueShader: 'blue_shader'
+    },
+    geometries: {
+      plane: new THREE.PlaneBufferGeometry(
+        480 * 1.75,
+        820 * 1.75,
+        480,
+        820
+      )
+    },
+    materials: {
+      shader: new THREE.ShaderMaterial({
+        extensions: {
+          derivatives: '#extension GL_OES_standard_derivatives :enable',
+        },
+        uniforms: {
+          time: { type: 'f', value: 0 },
+          u_progress: { type: 'f', value: 0 },
+          u_distortion: { type: 'f', value: 0 },
+          u_texture: {
+            type: 't',
+            value: new THREE.TextureLoader().load(texture),
+          },
+          // u_t2: {
+          //   type: 't',
+          //   value: new THREE.TextureLoader().load(texture2),
+          // },
+          u_resolution: { type: 'v4', value: new THREE.Vector4() },
+          u_fragColorRate: { type: 'f', value: 0 },
+          uvRate1: {
+            value: new THREE.Vector2(1, 1),
+          },
+        },
+        vertexShader: vertex,
+        fragmentShader: fragment,
+      })
+    }
+  }
+}
+
 export default class Particled {
   constructor(options) {
     this.scene = new THREE.Scene();
@@ -67,7 +137,7 @@ export default class Particled {
 
     this.addPostProcessing();
 
-    this.addObjects();
+    this.addRedDistortions();
     this.addWaterEffect();
     this.addLights();
     this.resize();
@@ -171,91 +241,24 @@ export default class Particled {
   }
 
   addWaterEffect() {
-    this.material__w = new THREE.ShaderMaterial({
-      extensions: {
-        derivatives: '#extension GL_OES_standard_derivatives :enable',
-      },
-      uniforms: {
-        time: { type: 'f', value: 0 },
-        u_progress: { type: 'f', value: 0 },
-        u_distortion: { type: 'f', value: 0 },
-        u_texture: {
-          type: 't',
-          value: new THREE.TextureLoader().load(texture2),
-        },
-        // u_t2: {
-        //   type: 't',
-        //   value: new THREE.TextureLoader().load(texture2),
-        // },
-        u_resolution: { type: 'v4', value: new THREE.Vector4() },
-        u_fragColorRate: { type: 'f', value: 0 },
-        uvRate1: {
-          value: new THREE.Vector2(1, 1),
-        },
-      },
-      vertexShader: vertex__w,
-      fragmentShader: fragment__w,
-    });
+    this.material__w = custom_shaderMaterial2
 
-    this.geometry__w = new THREE.PlaneBufferGeometry(
-      480 * 1.75,
-      820 * 1.75,
-      480,
-      820
-    );
+    this.geometry__w = scene.objects.geometries.plane;
 
     this.waterEffect = new THREE.Points(this.geometry__w, this.material__w);
+    this.waterEffect.name = scene.objects.names.blueShader;
 
-    this.waterEffect.name = 'blue_shader';
-
-    // this.scene.add(this.waterEffect);
   }
 
-  addObjects() {
-    let that = this;
+  addRedDistortions() {
 
-    this.material = new THREE.ShaderMaterial({
-      extensions: {
-        derivatives: '#extension GL_OES_standard_derivatives :enable',
-      },
-      uniforms: {
-        time: { type: 'f', value: 0 },
-        u_progress: { type: 'f', value: 0 },
-        u_distortion: { type: 'f', value: 0 },
-        u_texture: {
-          type: 't',
-          value: new THREE.TextureLoader().load(texture),
-        },
-        // u_t2: {
-        //   type: 't',
-        //   value: new THREE.TextureLoader().load(texture2),
-        // },
-        u_resolution: { type: 'v4', value: new THREE.Vector4() },
-        u_fragColorRate: { type: 'f', value: 0 },
-        uvRate1: {
-          value: new THREE.Vector2(1, 1),
-        },
-      },
-      vertexShader: vertex,
-      fragmentShader: fragment,
-    });
+    this.material = scene.objects.materials.shader;
 
-    this.geometry = new THREE.PlaneBufferGeometry(
-      480 * 1.75,
-      820 * 1.75,
-      480,
-      820
-    );
-
-    this.customGeometry = new THREE.OctahedronBufferGeometry(800, 1);
-    // this.octaedronMaterial = new THREE.MeshBasicMaterial();
-    this.octaedronMaterial = new THREE.MeshToonMaterial(0x103b53);
-    this.mesh = new THREE.Mesh(this.customGeometry, this.octaedronMaterial);
+    this.geometry = scene.objects.geometries.plane;
 
     this.plane = new THREE.Points(this.geometry, this.material);
-    this.plane.name = 'red_shader';
+    this.plane.name = scene.objects.names.customPoints;
 
-    // this.scene.add(this.plane);
   }
 
   addLights() {
