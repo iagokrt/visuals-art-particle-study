@@ -1,6 +1,6 @@
 import Particled from './pages/particled.js';
 import Displacement from './pages/displacement.js';
-
+import Sculpture from './pages/sculpture.js';
 
 javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})() // stats from https://github.com/mrdoob/stats.js/
 
@@ -53,6 +53,10 @@ class Menu {
         this.currentExample = new Particled({
           dom: document.getElementById('webgl'),
         });
+      case '03':
+        this.currentExample = new Sculpture({
+          dom: document.getElementById('webgl'),
+        });
         break;
       default:
         console.log('Exemplo não encontrado');
@@ -64,12 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // new Menu();
 
-  new Displacement({
-    dom: document.getElementById('webgl'),
-  });
+  // new Displacement({
+  //   dom: document.getElementById('webgl'),
+  // });
   // new Particled({
   //   dom: document.getElementById('webgl'),
   // });
-  
+  new Sculpture({
+    dom: document.getElementById('webgl'),
+  });
 
 });
