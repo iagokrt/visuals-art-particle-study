@@ -6,9 +6,9 @@ import dat from 'dat.gui';
 
 import '../styles/global.scss';
 
-// import perro from '../../public/perro.png'; 
+import perro from '../../public/perro.png'; 
 // import perro from '../../public/flouffy-qEO5MpLyOks-unsplash.jpg'; 
-import perro from '../../public/freddie-marriage-w39PTDxKiK8-unsplash.jpg'; 
+// import perro from '../../public/freddie-marriage-w39PTDxKiK8-unsplash.jpg'; 
 
 import displacement from '../../public/displacement.png'; 
 
@@ -161,6 +161,8 @@ export default class Displacement {
     // console.log(this.time);
 
     this.material_.uniforms.time.value = this.time;
+
+    this.material_.uniforms.progress.value = this.settings.progress;
 
     requestAnimationFrame(this.render.bind(this));
     this.renderer.render(this.scene, this.camera);
