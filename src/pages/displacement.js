@@ -6,7 +6,10 @@ import dat from 'dat.gui';
 
 import '../styles/global.scss';
 
-import perro from '../../public/perro.png'; 
+// import perro from '../../public/perro.png'; 
+// import perro from '../../public/flouffy-qEO5MpLyOks-unsplash.jpg'; 
+import perro from '../../public/freddie-marriage-w39PTDxKiK8-unsplash.jpg'; 
+
 import displacement from '../../public/displacement.png'; 
 
 import vert from '../shader/vert.glsl';
@@ -30,7 +33,7 @@ const scene = {
         480,
         820
       ),
-      simplePlane: new THREE.PlaneGeometry( 1500, 1500, 2, 2 ),
+      simplePlane: new THREE.PlaneGeometry( 1550, 1500, 2, 2 ),
     },
     materials: {
       simpleShader: new THREE.ShaderMaterial({
@@ -85,7 +88,7 @@ export default class Displacement {
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setClearColor(0x000000, 1);
+    this.renderer.setClearColor(0xf1f1f1, 1);
     this.renderer.physicallyCorrectLights = true;
 
     this.container.appendChild(this.renderer.domElement);
@@ -139,11 +142,14 @@ export default class Displacement {
     // this.material_ = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
 
     this.perro = new THREE.Mesh( this.geometry_, this.material_ );
+
     this.perro.name = 'perro';
     this.scene.add(this.perro);
 
     this.ambient = new THREE.AmbientLight(0x00ff00, 1)
     this.scene.add( this.ambient );
+
+    this.camera.position.y -= 200
 
   }
 
@@ -151,6 +157,10 @@ export default class Displacement {
     if (!this.isPlaying) return;
 
     this.time += 0.05;
+
+    // console.log(this.time);
+
+    this.material_.uniforms.time.value = this.time;
 
     requestAnimationFrame(this.render.bind(this));
     this.renderer.render(this.scene, this.camera);

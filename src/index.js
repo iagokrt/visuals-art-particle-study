@@ -62,13 +62,14 @@ class Menu {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  new Menu();
+  // new Menu();
 
+  new Displacement({
+    dom: document.getElementById('webgl'),
+  });
   // new Particled({
   //   dom: document.getElementById('webgl'),
   // });
-  // new Displacement({
-  //   dom: document.getElementById('webgl'),
-  // });
+  
 
 });
