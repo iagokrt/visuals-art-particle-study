@@ -7,7 +7,9 @@
 html,
 body {
   overflow: hidden;
-  background-image: linear-gradient(#140331, #f0f0f0);
+  background: #05060a;
+  color: #f4efe4;
+  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
 }
 
 p {
@@ -41,6 +43,10 @@ a {
 #webgl {
   width: 100vw;
   height: 100vh;
+}
+
+#webgl canvas {
+  display: block;
 }
 
 
@@ -123,6 +129,325 @@ a {
 // NOVO
 
 .menu {
+  display: none;
+}
+
+.shader-atlas {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 22px;
+  padding: 28px;
+  pointer-events: none;
+}
+
+.atlas-hero,
+.atlas-grid,
+.atlas-controls,
+.atlas-note {
+  pointer-events: auto;
+}
+
+.atlas-hero {
+  align-self: start;
+  max-width: 410px;
+  padding: 22px;
+  border: 1px solid rgba(244, 239, 228, 0.14);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(7, 9, 14, 0.74), rgba(7, 9, 14, 0.38));
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  color: #d0b073;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.atlas-hero h1 {
+  margin: 0;
+  color: #fff7e8;
+  font-size: 30px;
+  line-height: 1.03;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.lead {
+  margin-top: 14px;
+  color: rgba(244, 239, 228, 0.78);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.atlas-controls {
+  grid-column: 1;
+  align-self: end;
+  display: grid;
+  gap: 12px;
+  max-width: 410px;
+  padding: 16px;
+  border: 1px solid rgba(244, 239, 228, 0.12);
+  border-radius: 12px;
+  background: rgba(7, 9, 14, 0.52);
+  backdrop-filter: blur(14px);
+}
+
+.atlas-controls label {
+  display: grid;
+  gap: 8px;
+  color: rgba(244, 239, 228, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.atlas-range {
+  width: 100%;
+  accent-color: #d0b073;
+}
+
+.legacy-controls {
+  display: none;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(244, 239, 228, 0.10);
+}
+
+.legacy-controls.is-visible {
+  display: grid;
+}
+
+.legacy-controls p {
+  margin: 0;
+  color: rgba(208, 176, 115, 0.88);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.legacy-controls label {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.camera-controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(244, 239, 228, 0.10);
+}
+
+.camera-controls p {
+  margin: 0;
+  color: rgba(208, 176, 115, 0.88);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.camera-chip-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.camera-chip {
+  min-height: 58px;
+  padding: 9px;
+  border: 1px solid rgba(244, 239, 228, 0.10);
+  border-radius: 8px;
+  background: rgba(255, 247, 232, 0.045);
+  color: rgba(244, 239, 228, 0.74);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.camera-chip:hover,
+.camera-chip:focus-visible,
+.camera-chip.is-active {
+  border-color: rgba(208, 176, 115, 0.82);
+  background: rgba(208, 176, 115, 0.12);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.camera-chip strong,
+.camera-chip span {
+  display: block;
+}
+
+.camera-chip strong {
+  color: #fff7e8;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.camera-chip span {
+  margin-top: 5px;
+  color: rgba(244, 239, 228, 0.56);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.atlas-grid {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+  gap: 12px;
+}
+
+.atlas-card {
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(244, 239, 228, 0.12);
+  border-radius: 10px;
+  background: rgba(7, 9, 14, 0.50);
+  color: #fff7e8;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.atlas-card:hover,
+.atlas-card:focus-visible,
+.atlas-card.is-active {
+  border-color: rgba(208, 176, 115, 0.85);
+  background: rgba(37, 31, 24, 0.66);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.card-number {
+  display: inline-block;
+  color: #d0b073;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.card-source {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border: 1px solid rgba(208, 176, 115, 0.28);
+  border-radius: 999px;
+  color: rgba(244, 239, 228, 0.62);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-card strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.atlas-card em {
+  display: block;
+  margin-top: 8px;
+  color: rgba(244, 239, 228, 0.62);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+.atlas-note {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+  width: 100%;
+  max-width: 440px;
+  padding: 18px;
+  border: 1px solid rgba(244, 239, 228, 0.12);
+  border-radius: 12px;
+  background: rgba(7, 9, 14, 0.40);
+  backdrop-filter: blur(14px);
+}
+
+.atlas-note h2 {
+  margin: 0;
+  color: #fff7e8;
+  font-size: 22px;
+  line-height: 1.12;
+}
+
+.atlas-note p {
+  margin-top: 10px;
+  color: rgba(244, 239, 228, 0.74);
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.atlas-note small {
+  display: block;
+  margin-top: 12px;
+  color: rgba(208, 176, 115, 0.82);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+@media (max-width: 980px) {
+  body {
+    overflow: auto;
+  }
+
+  #webgl {
+    position: fixed;
+    inset: 0;
+  }
+
+  .shader-atlas {
+    position: relative;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    min-height: 100vh;
+    padding: 18px;
+  }
+
+  .atlas-hero,
+  .atlas-controls,
+  .atlas-note {
+    max-width: none;
+    width: 100%;
+  }
+
+  .atlas-controls,
+  .atlas-grid,
+  .atlas-note {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .atlas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-chip-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Legacy menu kept hidden for the original examples. */
+/*
+.menu {
   display: flex;
   justify-content: center;
 
@@ -161,3 +486,4 @@ a {
     }
   }
 }
+*/
