@@ -144,6 +144,128 @@ a {
   pointer-events: none;
 }
 
+.atlas-menu-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 30;
+  min-width: 96px;
+  padding: 9px 12px;
+  border: 1px solid rgba(208, 176, 115, 0.34);
+  border-radius: 999px;
+  background: rgba(7, 9, 14, 0.56);
+  color: rgba(255, 247, 232, 0.82);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.atlas-menu-toggle:hover,
+.atlas-menu-toggle:focus-visible {
+  border-color: rgba(208, 176, 115, 0.85);
+  background: rgba(37, 31, 24, 0.70);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.atlas-current-card {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: none;
+  width: 280px;
+  max-width: calc(100vw - 36px);
+  min-height: 92px;
+  padding: 13px 14px;
+  border: 1px solid rgba(208, 176, 115, 0.38);
+  border-radius: 10px;
+  background: rgba(7, 9, 14, 0.58);
+  color: #fff7e8;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.atlas-current-card:hover,
+.atlas-current-card:focus-visible {
+  border-color: rgba(208, 176, 115, 0.85);
+  background: rgba(37, 31, 24, 0.72);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.atlas-current-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.atlas-current-card em {
+  display: block;
+  margin-top: 6px;
+  color: rgba(244, 239, 228, 0.62);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.toggle-closed {
+  display: none;
+}
+
+.shader-atlas.is-menu-collapsed {
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+}
+
+.shader-atlas.is-menu-collapsed .atlas-hero,
+.shader-atlas.is-menu-collapsed .atlas-controls,
+.shader-atlas.is-menu-collapsed .atlas-grid,
+.shader-atlas.is-menu-collapsed .atlas-note {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.shader-atlas.is-menu-collapsed .toggle-open {
+  display: none;
+}
+
+.shader-atlas.is-menu-collapsed .toggle-closed {
+  display: inline;
+}
+
+.shader-atlas.is-menu-collapsed .atlas-current-card {
+  display: block;
+}
+
+.shader-atlas.is-camera-unlocked::after {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  padding: 8px 10px;
+  border: 1px solid rgba(208, 176, 115, 0.34);
+  border-radius: 999px;
+  background: rgba(7, 9, 14, 0.56);
+  color: rgba(255, 247, 232, 0.76);
+  content: "camera livre: arraste, aproxime, mova";
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
 .atlas-hero,
 .atlas-grid,
 .atlas-controls,
@@ -160,6 +282,13 @@ a {
   background: linear-gradient(180deg, rgba(7, 9, 14, 0.74), rgba(7, 9, 14, 0.38));
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(14px);
+}
+
+.atlas-hero,
+.atlas-controls,
+.atlas-grid,
+.atlas-note {
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .eyebrow {
@@ -254,6 +383,61 @@ a {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.camera-toggle {
+  position: relative;
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid rgba(244, 239, 228, 0.10);
+  border-radius: 999px;
+  background: rgba(255, 247, 232, 0.045);
+  cursor: pointer;
+}
+
+.camera-toggle span {
+  color: rgba(244, 239, 228, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.camera-toggle input {
+  width: 34px;
+  height: 18px;
+  margin: 0;
+  appearance: none;
+  border: 1px solid rgba(244, 239, 228, 0.22);
+  border-radius: 999px;
+  background: rgba(7, 9, 14, 0.8);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.camera-toggle input::before {
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: 2px;
+  border-radius: 50%;
+  background: rgba(244, 239, 228, 0.68);
+  content: "";
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.camera-toggle input:checked {
+  border-color: rgba(208, 176, 115, 0.82);
+  background: rgba(208, 176, 115, 0.20);
+}
+
+.camera-toggle input:checked::before {
+  background: #d0b073;
+  transform: translateX(16px);
 }
 
 .camera-chip-list {
@@ -420,6 +604,17 @@ a {
     grid-template-rows: auto;
     min-height: 100vh;
     padding: 18px;
+  }
+
+  .shader-atlas.is-menu-collapsed {
+    position: fixed;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .atlas-menu-toggle {
+    top: 14px;
+    right: 14px;
   }
 
   .atlas-hero,

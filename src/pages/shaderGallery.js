@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import '../styles/global.scss';
 
@@ -10,6 +11,16 @@ import forbiddenBloom from '../shader/gallery/forbiddenBloom.frag';
 import stormSilhouette from '../shader/gallery/stormSilhouette.frag';
 import memoryLake from '../shader/gallery/memoryLake.frag';
 import heatMirage from '../shader/gallery/heatMirage.frag';
+import silkRibbons from '../shader/gallery/silkRibbons.frag';
+import truchetPlates from '../shader/gallery/truchetPlates.frag';
+import perlinDrift from '../shader/gallery/perlinDrift.frag';
+import cellularRelic from '../shader/gallery/cellularRelic.frag';
+import botanicalSection from '../shader/gallery/botanicalSection.frag';
+import fbmTerrain from '../shader/gallery/fbmTerrain.frag';
+import domainWarpMarble from '../shader/gallery/domainWarpMarble.frag';
+import neonRainStreet from '../shader/gallery/neonRainStreet.frag';
+import pyramidDusk from '../shader/gallery/pyramidDusk.frag';
+import statueGarden from '../shader/gallery/statueGarden.frag';
 import legacyDisplacement from '../shader/gallery/legacyDisplacement.frag';
 import legacyVideoParticles from '../shader/gallery/legacyVideoParticles.frag';
 import legacySculpture from '../shader/gallery/legacySculpture.frag';
@@ -76,6 +87,86 @@ const studies = [
     source: 'new study',
     fragment: heatMirage,
     note: 'Distorção por calor, brilho baixo e horizonte tremendo. Um estudo essencial para escala, distância e sensação de ar pesado.',
+  },
+  {
+    id: 'silk',
+    title: 'Silk Ribbons',
+    tag: 'transparent cloth / ink smoke / flow field',
+    source: 'new study',
+    fragment: silkRibbons,
+    note: 'Faixas translúcidas como seda, fumaça ou tinta suspensa. Estudo bom para magia, interface viva, partículas elegantes e transições etéreas.',
+  },
+  {
+    id: 'truchet',
+    title: 'Truchet Plates',
+    tag: 'ornament / procedural tile book',
+    source: 'new study',
+    fragment: truchetPlates,
+    note: 'Azulejos Truchet com cara de prancha geométrica antiga: arcos, grade, variação por hash e papel envelhecido. Bom para arquitetura procedural, UI ornamental e padrões de mundo.',
+  },
+  {
+    id: 'perlin',
+    title: 'Perlin Drift',
+    tag: 'gradient noise / clouds / terrain',
+    source: 'new study',
+    fragment: perlinDrift,
+    note: 'Ruído gradiente em camadas: nuvem, névoa, relevo e fluxo contínuo. É o estudo-base para materiais orgânicos que não devem parecer quadriculados.',
+  },
+  {
+    id: 'cellular',
+    title: 'Cellular Relic',
+    tag: 'voronoi cells / cracks / mineral skin',
+    source: 'new study',
+    fragment: cellularRelic,
+    note: 'Ruído celular/Voronoi para placas, poros, rachaduras e superfície mineral. Ótimo para pedra, casco, ruína alienígena e mapas de desgaste.',
+  },
+  {
+    id: 'botanical',
+    title: 'Botanical Section',
+    tag: 'plant anatomy / vessel cells / scientific plate',
+    source: 'new study',
+    fragment: botanicalSection,
+    note: 'Corte botânico procedural: vasos grandes, microcélulas, anéis de tecido e traço de prancha científica. Bom para estudar anatomia, ruínas orgânicas e mapas celulares.',
+  },
+  {
+    id: 'fbm',
+    title: 'FBM Terrain',
+    tag: 'fractal brownian motion / octaves / domain warp',
+    source: 'new study',
+    fragment: fbmTerrain,
+    note: 'Fractal Brownian Motion em camadas: várias oitavas de ruído somadas para criar montanha, nuvem e erosão. Um dos blocos fundamentais de mundos procedurais.',
+  },
+  {
+    id: 'domain-warp',
+    title: 'Domain Warp Marble',
+    tag: 'fbm inside fbm / turbulent coordinates',
+    source: 'new study',
+    fragment: domainWarpMarble,
+    note: 'Domain warping: um FBM desloca as coordenadas de outro FBM, criando dobras, redemoinhos e mármore nebuloso. É o sonho dentro do sonho dos ruídos procedurais.',
+  },
+  {
+    id: 'neon-rain',
+    title: 'Neon Rain Street',
+    tag: 'night city / rain / wet lens',
+    source: 'new study',
+    fragment: neonRainStreet,
+    note: 'Rua noturna chuvosa com reflexos de neon, faixa de luz e sensação fotográfica. Estudo para cidade, clima urbano, lente molhada e contraste cinematográfico.',
+  },
+  {
+    id: 'pyramid-dusk',
+    title: 'Pyramid Dusk',
+    tag: 'desert / monuments / historical scale',
+    source: 'new study',
+    fragment: pyramidDusk,
+    note: 'Deserto ao entardecer com pirâmides, sol baixo, poeira e escala histórica. Um estudo de composição para monumento, distância e silêncio.',
+  },
+  {
+    id: 'statue-garden',
+    title: 'Statue Garden',
+    tag: 'sculpture / nature / museum light',
+    source: 'new study',
+    fragment: statueGarden,
+    note: 'Escultura de pedra tomada por musgo e luz de jardim/museu. Estudo de matéria, história, natureza retomando forma humana e fotografia calma.',
   },
   {
     id: 'legacy-displacement',
@@ -185,6 +276,8 @@ export default class ShaderGallery {
     this.time = 0;
     this.activeIndex = 0;
     this.activeCameraIndex = 0;
+    this.isCameraUnlocked = false;
+    this.isMenuCollapsed = false;
     this.mouse = new THREE.Vector2(0.5, 0.5);
     this.isPlaying = true;
     this.textureLoader = new THREE.TextureLoader();
@@ -222,6 +315,16 @@ export default class ShaderGallery {
     this.renderer.setSize(this.width, this.height);
     this.renderer.setClearColor(0x05060a, 1);
     this.container.appendChild(this.renderer.domElement);
+
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enabled = false;
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.08;
+    this.controls.rotateSpeed = 0.55;
+    this.controls.zoomSpeed = 0.8;
+    this.controls.panSpeed = 0.55;
+    this.controls.minDistance = 0.9;
+    this.controls.maxDistance = 6.0;
   }
 
   createStudies() {
@@ -255,6 +358,18 @@ export default class ShaderGallery {
     this.root = document.createElement('section');
     this.root.className = 'shader-atlas';
     this.root.innerHTML = `
+      <button class="atlas-menu-toggle" type="button" aria-expanded="true" aria-label="Recolher menu">
+        <span class="toggle-open">Fechar menu</span>
+        <span class="toggle-closed">Abrir menu</span>
+      </button>
+
+      <button class="atlas-current-card" type="button" aria-label="Abrir menu do estudo atual">
+        <span class="card-number">${String(this.activeIndex + 1).padStart(2, '0')}</span>
+        <span class="card-source">${studies[this.activeIndex].source}</span>
+        <strong>${studies[this.activeIndex].title}</strong>
+        <em>${studies[this.activeIndex].tag}</em>
+      </button>
+
       <div class="atlas-hero">
         <p class="eyebrow">shader field notes</p>
         <h1>Arqueologia visual para um jogo design-first</h1>
@@ -287,6 +402,10 @@ export default class ShaderGallery {
         </div>
         <div class="camera-controls" aria-label="Presets de camera cinematica">
           <p>Cinematic camera</p>
+          <label class="camera-toggle">
+            <input class="camera-unlock" type="checkbox">
+            <span>Liberar camera manual</span>
+          </label>
           <div class="camera-chip-list">
             ${cameraPresets.map((camera, index) => `
               <button class="camera-chip${index === this.activeCameraIndex ? ' is-active' : ''}" data-camera="${index}" type="button">
@@ -325,6 +444,9 @@ export default class ShaderGallery {
     this.legacyRanges = Array.from(this.root.querySelectorAll('.legacy-range'));
     this.legacyLabels = Array.from(this.root.querySelectorAll('[data-legacy-label]'));
     this.cameraButtons = Array.from(this.root.querySelectorAll('.camera-chip'));
+    this.cameraUnlock = this.root.querySelector('.camera-unlock');
+    this.menuToggle = this.root.querySelector('.atlas-menu-toggle');
+    this.currentCard = this.root.querySelector('.atlas-current-card');
     this.syncLegacyControls(studies[this.activeIndex]);
   }
 
@@ -346,6 +468,18 @@ export default class ShaderGallery {
       button.addEventListener('click', () => {
         this.setCameraPreset(Number(button.dataset.camera));
       });
+    });
+
+    this.cameraUnlock.addEventListener('change', () => {
+      this.setCameraUnlocked(this.cameraUnlock.checked);
+    });
+
+    this.menuToggle.addEventListener('click', () => {
+      this.setMenuCollapsed(!this.isMenuCollapsed);
+    });
+
+    this.currentCard.addEventListener('click', () => {
+      this.setMenuCollapsed(false);
     });
 
     window.addEventListener('mousemove', (event) => {
@@ -371,6 +505,10 @@ export default class ShaderGallery {
           this.activeCameraIndex === 0 ? cameraPresets.length - 1 : this.activeCameraIndex - 1,
         );
       }
+
+      if (event.key.toLowerCase() === 'm') {
+        this.setMenuCollapsed(!this.isMenuCollapsed);
+      }
     });
 
     window.addEventListener('resize', this.resize.bind(this));
@@ -390,6 +528,10 @@ export default class ShaderGallery {
 
     this.noteTitle.textContent = study.title;
     this.noteText.textContent = study.note;
+    this.currentCard.querySelector('.card-number').textContent = String(index + 1).padStart(2, '0');
+    this.currentCard.querySelector('.card-source').textContent = study.source;
+    this.currentCard.querySelector('strong').textContent = study.title;
+    this.currentCard.querySelector('em').textContent = study.tag;
     this.syncLegacyControls(study);
   }
 
@@ -402,6 +544,8 @@ export default class ShaderGallery {
     this.camera.position.set(...preset.position);
     this.camera.lookAt(target);
     this.camera.updateProjectionMatrix();
+    this.controls.target.copy(target);
+    this.controls.update();
 
     if (this.mesh) {
       this.mesh.rotation.set(...preset.meshRotation);
@@ -413,6 +557,19 @@ export default class ShaderGallery {
         button.classList.toggle('is-active', buttonIndex === index);
       });
     }
+  }
+
+  setCameraUnlocked(isUnlocked) {
+    this.isCameraUnlocked = isUnlocked;
+    this.controls.enabled = isUnlocked;
+    this.root.classList.toggle('is-camera-unlocked', isUnlocked);
+  }
+
+  setMenuCollapsed(isCollapsed) {
+    this.isMenuCollapsed = isCollapsed;
+    this.root.classList.toggle('is-menu-collapsed', isCollapsed);
+    this.menuToggle.setAttribute('aria-expanded', String(!isCollapsed));
+    this.menuToggle.setAttribute('aria-label', isCollapsed ? 'Abrir menu' : 'Recolher menu');
   }
 
   applyStudyUniforms(study) {
@@ -460,6 +617,7 @@ export default class ShaderGallery {
 
     this.time += 0.016;
     this.material.uniforms.u_time.value = this.time;
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
 
     requestAnimationFrame(this.render.bind(this));
