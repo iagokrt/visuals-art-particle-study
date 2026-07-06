@@ -6,7 +6,10 @@
 
 html,
 body {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: #05060a;
   color: #f4efe4;
   font-family: Inter, "Helvetica Neue", Arial, sans-serif;
@@ -43,10 +46,14 @@ a {
 #webgl {
   width: 100vw;
   height: 100vh;
+  height: 100svh;
 }
 
 #webgl canvas {
   display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
 }
 
 
@@ -590,7 +597,7 @@ a {
 
 @media (max-width: 980px) {
   body {
-    overflow: auto;
+    overflow: hidden;
   }
 
   #webgl {
@@ -599,15 +606,22 @@ a {
   }
 
   .shader-atlas {
-    position: relative;
+    position: fixed;
+    inset: 0;
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-    min-height: 100vh;
-    padding: 18px;
+    align-content: start;
+    min-height: 100svh;
+    max-height: 100svh;
+    gap: 14px;
+    overflow-y: auto;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
   }
 
   .shader-atlas.is-menu-collapsed {
     position: fixed;
+    overflow: hidden;
     min-height: 0;
     padding: 0;
   }
@@ -615,6 +629,9 @@ a {
   .atlas-menu-toggle {
     top: 14px;
     right: 14px;
+    min-width: 78px;
+    min-height: 40px;
+    padding: 8px 11px;
   }
 
   .atlas-hero,
@@ -631,12 +648,99 @@ a {
     grid-row: auto;
   }
 
+  .atlas-hero {
+    margin-top: 48px;
+    padding: 16px;
+  }
+
+  .atlas-hero h1 {
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .lead {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+
+  .atlas-controls {
+    padding: 14px;
+  }
+
   .atlas-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    padding-bottom: 8px;
+  }
+
+  .atlas-card {
+    min-height: 98px;
+    padding: 11px;
+  }
+
+  .atlas-card strong {
+    margin-top: 9px;
+    font-size: 14px;
+  }
+
+  .atlas-card em {
+    margin-top: 6px;
+    font-size: 10px;
+  }
+
+  .card-source {
+    margin-left: 4px;
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  .atlas-note {
+    padding: 14px;
+  }
+
+  .atlas-note h2 {
+    font-size: 18px;
+  }
+
+  .atlas-note p {
+    font-size: 13px;
   }
 
   .camera-chip-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .camera-chip {
+    min-height: 52px;
+    padding: 8px;
+  }
+
+  .shader-atlas.is-camera-unlocked::after {
+    right: 14px;
+    bottom: calc(118px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 28px);
+    font-size: 9px;
+  }
+
+  .atlas-current-card {
+    left: 14px;
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: auto;
+    min-height: 82px;
+    max-width: none;
+    padding: 11px 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  .atlas-grid,
+  .camera-chip-list {
     grid-template-columns: 1fr;
+  }
+
+  .atlas-card {
+    min-height: 86px;
   }
 }
 

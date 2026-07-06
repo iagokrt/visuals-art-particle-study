@@ -273,11 +273,12 @@ export default class ShaderGallery {
     this.container = options.dom;
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
+    this.isSmallViewport = window.matchMedia('(max-width: 760px)').matches;
     this.time = 0;
     this.activeIndex = 0;
     this.activeCameraIndex = 0;
     this.isCameraUnlocked = false;
-    this.isMenuCollapsed = false;
+    this.isMenuCollapsed = this.isSmallViewport;
     this.mouse = new THREE.Vector2(0.5, 0.5);
     this.isPlaying = true;
     this.textureLoader = new THREE.TextureLoader();
@@ -310,8 +311,12 @@ export default class ShaderGallery {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 0.01, 20);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: !this.isSmallViewport,
+      alpha: false,
+      powerPreference: 'high-performance',
+    });
+    this.updatePixelRatio();
     this.renderer.setSize(this.width, this.height);
     this.renderer.setClearColor(0x05060a, 1);
     this.container.appendChild(this.renderer.domElement);
@@ -325,10 +330,13 @@ export default class ShaderGallery {
     this.controls.panSpeed = 0.55;
     this.controls.minDistance = 0.9;
     this.controls.maxDistance = 6.0;
+    this.controls.enablePan = !this.isSmallViewport;
   }
 
   createStudies() {
-    this.geometry = new THREE.PlaneBufferGeometry(3.4, 2.05, 160, 120);
+    const widthSegments = this.isSmallViewport ? 96 : 160;
+    const heightSegments = this.isSmallViewport ? 68 : 120;
+    this.geometry = new THREE.PlaneBufferGeometry(3.4, 2.05, widthSegments, heightSegments);
 
     this.material = new THREE.ShaderMaterial({
       vertexShader: vertex,
@@ -356,9 +364,9 @@ export default class ShaderGallery {
 
   createInterface() {
     this.root = document.createElement('section');
-    this.root.className = 'shader-atlas';
+    this.root.className = `shader-atlas${this.isMenuCollapsed ? ' is-menu-collapsed' : ''}`;
     this.root.innerHTML = `
-      <button class="atlas-menu-toggle" type="button" aria-expanded="true" aria-label="Recolher menu">
+      <button class="atlas-menu-toggle" type="button" aria-expanded="${String(!this.isMenuCollapsed)}" aria-label="${this.isMenuCollapsed ? 'Abrir menu' : 'Recolher menu'}">
         <span class="toggle-open">Fechar menu</span>
         <span class="toggle-closed">Abrir menu</span>
       </button>
@@ -454,6 +462,10 @@ export default class ShaderGallery {
     this.cards.forEach((card) => {
       card.addEventListener('click', () => {
         this.setStudy(Number(card.dataset.index));
+
+        if (this.isSmallViewport) {
+          this.setMenuCollapsed(true);
+        }
       });
     });
 
@@ -482,10 +494,7 @@ export default class ShaderGallery {
       this.setMenuCollapsed(false);
     });
 
-    window.addEventListener('mousemove', (event) => {
-      this.mouse.x = event.clientX / window.innerWidth;
-      this.mouse.y = 1 - event.clientY / window.innerHeight;
-    });
+    window.addEventListener('pointermove', this.updatePointer.bind(this), { passive: true });
 
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowRight') {
@@ -512,6 +521,11 @@ export default class ShaderGallery {
     });
 
     window.addEventListener('resize', this.resize.bind(this));
+  }
+
+  updatePointer(event) {
+    this.mouse.x = event.clientX / window.innerWidth;
+    this.mouse.y = 1 - event.clientY / window.innerHeight;
   }
 
   setStudy(index) {
@@ -606,10 +620,17 @@ export default class ShaderGallery {
   resize() {
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
+    this.isSmallViewport = window.matchMedia('(max-width: 760px)').matches;
+    this.updatePixelRatio();
     this.renderer.setSize(this.width, this.height);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.material.uniforms.u_resolution.value.set(this.width, this.height);
+  }
+
+  updatePixelRatio() {
+    const maxPixelRatio = this.isSmallViewport ? 1.35 : 2;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
   }
 
   render() {
