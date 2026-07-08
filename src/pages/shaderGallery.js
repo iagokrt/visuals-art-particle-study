@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Stats from 'stats.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import '../styles/global.scss';
@@ -17,7 +18,9 @@ import perlinDrift from '../shader/gallery/perlinDrift.frag';
 import cellularRelic from '../shader/gallery/cellularRelic.frag';
 import botanicalSection from '../shader/gallery/botanicalSection.frag';
 import fbmTerrain from '../shader/gallery/fbmTerrain.frag';
+import atmosphereSky from '../shader/gallery/atmosphereSky.frag';
 import domainWarpMarble from '../shader/gallery/domainWarpMarble.frag';
+import moltenLava from '../shader/gallery/moltenLava.frag';
 import neonRainStreet from '../shader/gallery/neonRainStreet.frag';
 import pyramidDusk from '../shader/gallery/pyramidDusk.frag';
 import statueGarden from '../shader/gallery/statueGarden.frag';
@@ -137,12 +140,28 @@ const studies = [
     note: 'Fractal Brownian Motion em camadas: várias oitavas de ruído somadas para criar montanha, nuvem e erosão. Um dos blocos fundamentais de mundos procedurais.',
   },
   {
+    id: 'atmosphere-sky',
+    title: 'Atmosphere Sky',
+    tag: 'sky shader / sun / aerial haze',
+    source: 'three-inspired',
+    fragment: atmosphereSky,
+    note: 'Estudo inspirado no exemplo Sky do Three: sol controlado pelo mouse, dispersão atmosférica estilizada, nuvens lentas e brilho de horizonte para cenas abertas.',
+  },
+  {
     id: 'domain-warp',
     title: 'Domain Warp Marble',
     tag: 'fbm inside fbm / turbulent coordinates',
     source: 'new study',
     fragment: domainWarpMarble,
     note: 'Domain warping: um FBM desloca as coordenadas de outro FBM, criando dobras, redemoinhos e mármore nebuloso. É o sonho dentro do sonho dos ruídos procedurais.',
+  },
+  {
+    id: 'molten-lava',
+    title: 'Molten Lava',
+    tag: 'lava shader / emissive flow / cracked crust',
+    source: 'three-inspired',
+    fragment: moltenLava,
+    note: 'Estudo inspirado no clássico Lava do Three: fluxo quente, crosta escura rachada, células emissivas e fumaça sutil, mas feito proceduralmente sem texturas externas.',
   },
   {
     id: 'neon-rain',
@@ -215,6 +234,44 @@ const studies = [
   },
 ];
 
+const effectGroups = [
+  {
+    id: 'atmosphere',
+    title: 'Atmosfera e Paisagem',
+    tag: 'sky, horizonte, clima, escala',
+    studyIds: ['ash', 'storm', 'lake', 'mirage', 'fbm', 'atmosphere-sky', 'pyramid-dusk'],
+  },
+  {
+    id: 'matter',
+    title: 'Materia Organica e Mineral',
+    tag: 'ruido, celulas, pele, relevo',
+    studyIds: ['fur', 'cellular', 'botanical', 'domain-warp', 'statue-garden'],
+  },
+  {
+    id: 'patterns',
+    title: '2D, Padroes e Campos',
+    tag: 'tiles, scans, flow fields',
+    studyIds: ['vu', 'silk', 'truchet', 'perlin'],
+  },
+  {
+    id: 'emissive',
+    title: 'Luz Emissiva e Pos',
+    tag: 'bloom, neon, lava, aura',
+    studyIds: ['bloom', 'molten-lava', 'neon-rain'],
+  },
+  {
+    id: 'image',
+    title: 'Imagem e Legacy',
+    tag: 'textura, displacement, frames',
+    studyIds: ['legacy-displacement', 'legacy-particles', 'legacy-sculpture'],
+  },
+];
+
+const studiesById = studies.reduce((result, study, index) => {
+  result[study.id] = { study, index };
+  return result;
+}, {});
+
 const cameraPresets = [
   {
     id: 'monumental-low',
@@ -285,6 +342,7 @@ export default class ShaderGallery {
     this.textures = {};
 
     this.createScene();
+    this.createStats();
     this.loadTextures();
     this.createStudies();
     this.createInterface();
@@ -333,6 +391,18 @@ export default class ShaderGallery {
     this.controls.enablePan = !this.isSmallViewport;
   }
 
+  createStats() {
+    this.stats = new Stats();
+    this.stats.showPanel(0);
+    this.stats.dom.classList.add('atlas-stats');
+    this.stats.dom.style.top = 'auto';
+    this.stats.dom.style.right = '12px';
+    this.stats.dom.style.bottom = '12px';
+    this.stats.dom.style.left = 'auto';
+    this.stats.dom.style.zIndex = '60';
+    document.body.appendChild(this.stats.dom);
+  }
+
   createStudies() {
     const widthSegments = this.isSmallViewport ? 96 : 160;
     const heightSegments = this.isSmallViewport ? 68 : 120;
@@ -363,6 +433,15 @@ export default class ShaderGallery {
   }
 
   createInterface() {
+    const renderStudyCard = (study, index) => `
+      <button class="atlas-card${index === this.activeIndex ? ' is-active' : ''}" data-index="${index}" type="button">
+        <span class="card-number">${String(index + 1).padStart(2, '0')}</span>
+        <span class="card-source">${study.source}</span>
+        <strong>${study.title}</strong>
+        <em>${study.tag}</em>
+      </button>
+    `;
+
     this.root = document.createElement('section');
     this.root.className = `shader-atlas${this.isMenuCollapsed ? ' is-menu-collapsed' : ''}`;
     this.root.innerHTML = `
@@ -378,75 +457,111 @@ export default class ShaderGallery {
         <em>${studies[this.activeIndex].tag}</em>
       </button>
 
-      <div class="atlas-hero">
-        <p class="eyebrow">shader field notes</p>
-        <h1>Arqueologia visual para um jogo design-first</h1>
-        <p class="lead">Uma pequena biblioteca de fragment shaders: estudos procedurais novos e adaptações dos experimentos originais do projeto.</p>
-      </div>
-
-      <div class="atlas-controls" aria-label="Controles do shader ativo">
-        <label>
-          Intensidade
-          <input class="atlas-range" data-uniform="u_intensity" type="range" min="0" max="1.4" step="0.01" value="0.72">
-        </label>
-        <label>
-          Respiração do vertex
-          <input class="atlas-range" data-uniform="u_breath" type="range" min="0" max="1.5" step="0.01" value="0.65">
-        </label>
-        <div class="legacy-controls" aria-label="Controles legacy">
-          <p>Legacy controller</p>
-          <label>
-            <span data-legacy-label="u_legacy_a">Legacy A</span>
-            <input class="atlas-range legacy-range" data-uniform="u_legacy_a" type="range" min="0" max="1" step="0.01" value="0.5">
-          </label>
-          <label>
-            <span data-legacy-label="u_legacy_b">Legacy B</span>
-            <input class="atlas-range legacy-range" data-uniform="u_legacy_b" type="range" min="0" max="1" step="0.01" value="0.5">
-          </label>
-          <label>
-            <span data-legacy-label="u_legacy_c">Legacy C</span>
-            <input class="atlas-range legacy-range" data-uniform="u_legacy_c" type="range" min="0" max="1" step="0.01" value="0.5">
-          </label>
+      <aside class="atlas-sidebar" aria-label="Menu de estudos shader">
+        <div class="atlas-hero">
+          <p class="eyebrow">shader field notes</p>
+          <h1>Arqueologia visual para um jogo design-first</h1>
+          <p class="lead">Biblioteca de fragment shaders por familia de efeito.</p>
         </div>
-        <div class="camera-controls" aria-label="Presets de camera cinematica">
-          <p>Cinematic camera</p>
-          <label class="camera-toggle">
-            <input class="camera-unlock" type="checkbox">
-            <span>Liberar camera manual</span>
-          </label>
-          <div class="camera-chip-list">
-            ${cameraPresets.map((camera, index) => `
-              <button class="camera-chip${index === this.activeCameraIndex ? ' is-active' : ''}" data-camera="${index}" type="button">
-                <strong>${camera.title}</strong>
-                <span>${camera.tag}</span>
-              </button>
-            `).join('')}
+
+        <details class="atlas-controls" aria-label="Controles do shader ativo"${this.isSmallViewport ? '' : ' open'}>
+          <summary>
+            <span>Controles e camera</span>
+            <b>shader setup</b>
+          </summary>
+          <div class="atlas-controls-body">
+            <label>
+              Intensidade
+              <input class="atlas-range" data-uniform="u_intensity" type="range" min="0" max="1.4" step="0.01" value="0.72">
+            </label>
+            <label>
+              Respiração do vertex
+              <input class="atlas-range" data-uniform="u_breath" type="range" min="0" max="1.5" step="0.01" value="0.65">
+            </label>
+            <div class="legacy-controls" aria-label="Controles legacy">
+              <p>Legacy controller</p>
+              <label>
+                <span data-legacy-label="u_legacy_a">Legacy A</span>
+                <input class="atlas-range legacy-range" data-uniform="u_legacy_a" type="range" min="0" max="1" step="0.01" value="0.5">
+              </label>
+              <label>
+                <span data-legacy-label="u_legacy_b">Legacy B</span>
+                <input class="atlas-range legacy-range" data-uniform="u_legacy_b" type="range" min="0" max="1" step="0.01" value="0.5">
+              </label>
+              <label>
+                <span data-legacy-label="u_legacy_c">Legacy C</span>
+                <input class="atlas-range legacy-range" data-uniform="u_legacy_c" type="range" min="0" max="1" step="0.01" value="0.5">
+              </label>
+            </div>
+            <div class="camera-controls" aria-label="Presets de camera cinematica">
+              <p>Cinematic camera</p>
+              <label class="camera-toggle">
+                <input class="camera-unlock" type="checkbox">
+                <span>Liberar camera manual</span>
+              </label>
+              <div class="camera-chip-list">
+                ${cameraPresets.map((camera, index) => `
+                  <button class="camera-chip${index === this.activeCameraIndex ? ' is-active' : ''}" data-camera="${index}" type="button">
+                    <strong>${camera.title}</strong>
+                    <span>${camera.tag}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="atlas-browser" aria-label="Biblioteca de shaders">
+          <div class="atlas-group-tabs" aria-label="Familias de efeito">
+            ${effectGroups.map((group) => {
+              const groupStudies = group.studyIds
+                .map((id) => studiesById[id])
+                .filter(Boolean);
+              const isActiveGroup = groupStudies.some(({ index }) => index === this.activeIndex);
+
+              return `
+                <button class="atlas-group-tab${isActiveGroup ? ' is-active' : ''}" data-group="${group.id}" type="button" aria-pressed="${String(isActiveGroup)}">
+                  <i>${String.fromCharCode(65 + effectGroups.indexOf(group))}</i>
+                  <span>
+                    <strong>${group.title}</strong>
+                    <em>${group.tag}</em>
+                  </span>
+                  <b>${String(groupStudies.length).padStart(2, '0')} itens</b>
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="atlas-study-panels">
+            ${effectGroups.map((group) => {
+              const groupStudies = group.studyIds
+                .map((id) => studiesById[id])
+                .filter(Boolean);
+              const isActiveGroup = groupStudies.some(({ index }) => index === this.activeIndex);
+
+              return `
+                <div class="atlas-study-panel${isActiveGroup ? ' is-active' : ''}" data-group="${group.id}">
+                  ${groupStudies.map(({ study, index }) => renderStudyCard(study, index)).join('')}
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
-      </div>
-
-      <div class="atlas-grid" aria-label="Biblioteca de shaders">
-        ${studies.map((study, index) => `
-          <button class="atlas-card${index === this.activeIndex ? ' is-active' : ''}" data-index="${index}" type="button">
-            <span class="card-number">${String(index + 1).padStart(2, '0')}</span>
-            <span class="card-source">${study.source}</span>
-            <strong>${study.title}</strong>
-            <em>${study.tag}</em>
-          </button>
-        `).join('')}
-      </div>
-
-      <article class="atlas-note">
-        <h2>${studies[this.activeIndex].title}</h2>
-        <p>${studies[this.activeIndex].note}</p>
-        <small>Mouse move altera o campo; setas esquerda/direita trocam o estudo; [ e ] trocam a camera.</small>
-      </article>
+        <article class="atlas-note">
+          <h2>${studies[this.activeIndex].title}</h2>
+          <p>${studies[this.activeIndex].note}</p>
+          <small>Mouse move altera o campo; setas esquerda/direita trocam o estudo; [ e ] trocam a camera.</small>
+        </article>
+      </aside>
     `;
 
     document.body.appendChild(this.root);
+    document.body.classList.toggle('is-atlas-menu-open', !this.isMenuCollapsed);
     this.noteTitle = this.root.querySelector('.atlas-note h2');
     this.noteText = this.root.querySelector('.atlas-note p');
     this.cards = Array.from(this.root.querySelectorAll('.atlas-card'));
+    this.groupTabs = Array.from(this.root.querySelectorAll('.atlas-group-tab'));
+    this.studyPanels = Array.from(this.root.querySelectorAll('.atlas-study-panel'));
     this.ranges = Array.from(this.root.querySelectorAll('.atlas-range'));
     this.legacyControls = this.root.querySelector('.legacy-controls');
     this.legacyRanges = Array.from(this.root.querySelectorAll('.legacy-range'));
@@ -466,6 +581,22 @@ export default class ShaderGallery {
         if (this.isSmallViewport) {
           this.setMenuCollapsed(true);
         }
+      });
+    });
+
+    this.groupTabs.forEach((button) => {
+      button.addEventListener('click', () => {
+        const group = effectGroups.find((item) => item.id === button.dataset.group);
+        const isCurrentGroup = group && group.studyIds.includes(studies[this.activeIndex].id);
+
+        if (!group) return;
+
+        if (isCurrentGroup) {
+          this.setActiveGroup(group.id);
+          return;
+        }
+
+        this.setStudy(studiesById[group.studyIds[0]].index);
       });
     });
 
@@ -547,6 +678,29 @@ export default class ShaderGallery {
     this.currentCard.querySelector('strong').textContent = study.title;
     this.currentCard.querySelector('em').textContent = study.tag;
     this.syncLegacyControls(study);
+    this.openActiveGroup(index);
+  }
+
+  openActiveGroup(index) {
+    const study = studies[index];
+    const activeGroup = effectGroups.find((group) => group.studyIds.includes(study.id));
+
+    if (!activeGroup) return;
+
+    this.setActiveGroup(activeGroup.id);
+  }
+
+  setActiveGroup(groupId) {
+    if (!this.groupTabs || !this.studyPanels) return;
+
+    this.groupTabs.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.group === groupId);
+      button.setAttribute('aria-pressed', String(button.dataset.group === groupId));
+    });
+
+    this.studyPanels.forEach((panel) => {
+      panel.classList.toggle('is-active', panel.dataset.group === groupId);
+    });
   }
 
   setCameraPreset(index) {
@@ -582,6 +736,7 @@ export default class ShaderGallery {
   setMenuCollapsed(isCollapsed) {
     this.isMenuCollapsed = isCollapsed;
     this.root.classList.toggle('is-menu-collapsed', isCollapsed);
+    document.body.classList.toggle('is-atlas-menu-open', !isCollapsed);
     this.menuToggle.setAttribute('aria-expanded', String(!isCollapsed));
     this.menuToggle.setAttribute('aria-label', isCollapsed ? 'Abrir menu' : 'Recolher menu');
   }
@@ -636,10 +791,12 @@ export default class ShaderGallery {
   render() {
     if (!this.isPlaying) return;
 
+    this.stats.begin();
     this.time += 0.016;
     this.material.uniforms.u_time.value = this.time;
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+    this.stats.end();
 
     requestAnimationFrame(this.render.bind(this));
   }
