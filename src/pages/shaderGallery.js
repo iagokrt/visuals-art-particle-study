@@ -450,12 +450,22 @@ export default class ShaderGallery {
         <span class="toggle-closed">Abrir menu</span>
       </button>
 
-      <button class="atlas-current-card" type="button" aria-label="Abrir menu do estudo atual">
-        <span class="card-number">${String(this.activeIndex + 1).padStart(2, '0')}</span>
-        <span class="card-source">${studies[this.activeIndex].source}</span>
-        <strong>${studies[this.activeIndex].title}</strong>
-        <em>${studies[this.activeIndex].tag}</em>
-      </button>
+      <div class="atlas-current-dock">
+        <button class="atlas-step atlas-step-prev" data-step="-1" type="button" aria-label="Estudo anterior">
+          <span aria-hidden="true">‹</span>
+        </button>
+
+        <button class="atlas-current-card" type="button" aria-label="Abrir menu do estudo atual">
+          <span class="card-number">${String(this.activeIndex + 1).padStart(2, '0')}</span>
+          <span class="card-source">${studies[this.activeIndex].source}</span>
+          <strong>${studies[this.activeIndex].title}</strong>
+          <em>${studies[this.activeIndex].tag}</em>
+        </button>
+
+        <button class="atlas-step atlas-step-next" data-step="1" type="button" aria-label="Proximo estudo">
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
 
       <aside class="atlas-sidebar" aria-label="Menu de estudos shader">
         <div class="atlas-hero">
@@ -570,6 +580,7 @@ export default class ShaderGallery {
     this.cameraUnlock = this.root.querySelector('.camera-unlock');
     this.menuToggle = this.root.querySelector('.atlas-menu-toggle');
     this.currentCard = this.root.querySelector('.atlas-current-card');
+    this.stepButtons = Array.from(this.root.querySelectorAll('.atlas-step'));
     this.syncLegacyControls(studies[this.activeIndex]);
   }
 
@@ -577,10 +588,12 @@ export default class ShaderGallery {
     this.cards.forEach((card) => {
       card.addEventListener('click', () => {
         this.setStudy(Number(card.dataset.index));
+      });
+    });
 
-        if (this.isSmallViewport) {
-          this.setMenuCollapsed(true);
-        }
+    this.stepButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        this.stepStudy(Number(button.dataset.step));
       });
     });
 
@@ -629,11 +642,11 @@ export default class ShaderGallery {
 
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowRight') {
-        this.setStudy((this.activeIndex + 1) % studies.length);
+        this.stepStudy(1);
       }
 
       if (event.key === 'ArrowLeft') {
-        this.setStudy(this.activeIndex === 0 ? studies.length - 1 : this.activeIndex - 1);
+        this.stepStudy(-1);
       }
 
       if (event.key === ']') {
@@ -679,6 +692,11 @@ export default class ShaderGallery {
     this.currentCard.querySelector('em').textContent = study.tag;
     this.syncLegacyControls(study);
     this.openActiveGroup(index);
+  }
+
+  stepStudy(direction) {
+    const nextIndex = (this.activeIndex + direction + studies.length) % studies.length;
+    this.setStudy(nextIndex);
   }
 
   openActiveGroup(index) {

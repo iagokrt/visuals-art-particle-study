@@ -198,14 +198,21 @@ a {
   transform: translateY(-1px);
 }
 
-.atlas-current-card {
+.atlas-current-dock {
   position: fixed;
   left: 18px;
   bottom: 18px;
   z-index: 30;
-  display: none;
-  width: 280px;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 300px) auto;
+  align-items: stretch;
+  gap: 8px;
   max-width: calc(100vw - 36px);
+  pointer-events: none;
+}
+
+.atlas-current-card {
+  width: 100%;
   min-height: 92px;
   padding: 13px 14px;
   border: 1px solid rgba(208, 176, 115, 0.38);
@@ -243,6 +250,36 @@ a {
   line-height: 1.25;
 }
 
+.atlas-step {
+  display: grid;
+  width: 52px;
+  min-height: 76px;
+  place-items: center;
+  border: 1px solid rgba(208, 176, 115, 0.30);
+  border-radius: 999px;
+  background: rgba(7, 9, 14, 0.34);
+  color: rgba(255, 247, 232, 0.82);
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.atlas-step:hover,
+.atlas-step:focus-visible {
+  border-color: rgba(208, 176, 115, 0.86);
+  background: rgba(37, 31, 24, 0.62);
+  color: #fff7e8;
+  outline: none;
+  transform: scale(1.04);
+}
+
+.atlas-step span {
+  margin-top: -3px;
+  font-size: 38px;
+  line-height: 1;
+}
+
 .toggle-closed {
   display: none;
 }
@@ -261,16 +298,16 @@ a {
   left: 18px;
 }
 
+.shader-atlas:not(.is-menu-collapsed) .atlas-current-dock {
+  left: calc(42px + var(--atlas-sidebar-width));
+}
+
 .shader-atlas.is-menu-collapsed .toggle-open {
   display: none;
 }
 
 .shader-atlas.is-menu-collapsed .toggle-closed {
   display: inline;
-}
-
-.shader-atlas.is-menu-collapsed .atlas-current-card {
-  display: block;
 }
 
 .shader-atlas.is-camera-unlocked::after {
@@ -792,13 +829,35 @@ a {
     padding: 8px 11px;
   }
 
+  .atlas-current-dock,
+  .shader-atlas:not(.is-menu-collapsed) .atlas-current-dock {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 6px;
+    max-width: none;
+  }
+
+  .atlas-step {
+    width: 44px;
+    min-height: 68px;
+  }
+
+  .atlas-step span {
+    font-size: 32px;
+  }
+
   .shader-atlas.is-menu-collapsed .atlas-menu-toggle {
     right: auto;
     left: 14px;
   }
 
-  body.is-atlas-menu-open .atlas-stats {
-    display: none !important;
+  .atlas-stats {
+    top: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
   }
 
   .atlas-hero {
@@ -933,14 +992,21 @@ a {
   }
 
   .atlas-current-card {
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    bottom: #{'max(14px, env(safe-area-inset-bottom))'};
-    width: auto;
-    min-height: 82px;
-    max-width: none;
-    padding: 11px 12px;
+    min-height: 68px;
+    padding: 10px 12px;
+  }
+
+  .atlas-current-card strong {
+    margin-top: 7px;
+    font-size: 15px;
+  }
+
+  .atlas-current-card em {
+    margin-top: 5px;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
