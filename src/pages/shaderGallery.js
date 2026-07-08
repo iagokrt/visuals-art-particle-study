@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import Stats from 'stats.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 
 import '../styles/global.scss';
 
 import vertex from '../shader/gallery/studyVertex.glsl';
+import stripedSurfaceVertex from '../shader/gallery/stripedSurfaceVertex.glsl';
+import gravityParticlesVertex from '../shader/gallery/gravityParticlesVertex.glsl';
+import stipplingParticlesVertex from '../shader/gallery/stipplingParticlesVertex.glsl';
 import ashPlain from '../shader/gallery/ashPlain.frag';
 import vuGhost from '../shader/gallery/vuGhost.frag';
 import furColossus from '../shader/gallery/furColossus.frag';
@@ -21,6 +25,13 @@ import fbmTerrain from '../shader/gallery/fbmTerrain.frag';
 import atmosphereSky from '../shader/gallery/atmosphereSky.frag';
 import domainWarpMarble from '../shader/gallery/domainWarpMarble.frag';
 import moltenLava from '../shader/gallery/moltenLava.frag';
+import stripedTorus from '../shader/gallery/stripedTorus.frag';
+import gravityParticles from '../shader/gallery/gravityParticles.frag';
+import gravityPosition from '../shader/gallery/gravityPosition.frag';
+import gravityVelocity from '../shader/gallery/gravityVelocity.frag';
+import stipplingParticles from '../shader/gallery/stipplingParticles.frag';
+import stipplingPosition from '../shader/gallery/stipplingPosition.frag';
+import stipplingVelocity from '../shader/gallery/stipplingVelocity.frag';
 import neonRainStreet from '../shader/gallery/neonRainStreet.frag';
 import pyramidDusk from '../shader/gallery/pyramidDusk.frag';
 import statueGarden from '../shader/gallery/statueGarden.frag';
@@ -32,6 +43,7 @@ import perro from '../../public/perro.png';
 import displacement from '../../public/displacement.png';
 import aEnd from '../../public/a-end.jpg';
 import bEnd from '../../public/b-end.jpg';
+import dali from '../../public/dali.jpg';
 import freddie from '../../public/freddie-marriage-w39PTDxKiK8-unsplash.jpg';
 
 const studies = [
@@ -164,6 +176,33 @@ const studies = [
     note: 'Estudo inspirado no clássico Lava do Three: fluxo quente, crosta escura rachada, células emissivas e fumaça sutil, mas feito proceduralmente sem texturas externas.',
   },
   {
+    id: 'striped-torus',
+    title: 'Striped Torus Knot',
+    tag: '3D geometry / discard stripes / diffuse light',
+    source: 'webgl-shaders inspired',
+    vertex: stripedSurfaceVertex,
+    fragment: stripedTorus,
+    geometry: 'torusKnot',
+    note: 'Versão própria do exemplo básico de stripes em 3D: um torus knot com faixas animadas recortadas por discard e luz difusa guiada pelo mouse.',
+  },
+  {
+    id: 'gravity',
+    title: 'Gravity Particles',
+    tag: 'simulation / gpu compute / n-body',
+    source: 'webgl-shaders inspired',
+    mode: 'particlesGravity',
+    note: 'Simulação gravitacional em textura: posição e velocidade rodam no GPUComputationRenderer, e a visualização usa Points com tamanho em perspectiva.',
+  },
+  {
+    id: 'stippling',
+    title: 'Stippling Portrait',
+    tag: 'simulation / image sampling / point packing',
+    source: 'webgl-shaders inspired',
+    mode: 'particlesStippling',
+    texture: dali,
+    note: 'Pontilhismo procedural: partículas ativam aos poucos, sampleiam uma imagem-alvo e se repelem até formar uma leitura em pontos.',
+  },
+  {
     id: 'neon-rain',
     title: 'Neon Rain Street',
     tag: 'night city / rain / wet lens',
@@ -254,6 +293,18 @@ const effectGroups = [
     studyIds: ['vu', 'silk', 'truchet', 'perlin'],
   },
   {
+    id: 'geometry',
+    title: '3D e Geometria',
+    tag: 'mesh, normal, vertex, discard',
+    studyIds: ['striped-torus'],
+  },
+  {
+    id: 'simulation',
+    title: 'Simulacao',
+    tag: 'particles, gpu, feedback',
+    studyIds: ['gravity', 'stippling'],
+  },
+  {
     id: 'emissive',
     title: 'Luz Emissiva e Pos',
     tag: 'bloom, neon, lava, aura',
@@ -325,6 +376,15 @@ const cameraPresets = [
   },
 ];
 
+const stipplingCamera = {
+  fov: 75,
+  position: [0, 0, 12],
+  target: [0, 0, 0],
+  minDistance: 5,
+  maxDistance: 240,
+  revealRadius: 5.15,
+};
+
 export default class ShaderGallery {
   constructor(options) {
     this.container = options.dom;
@@ -334,8 +394,8 @@ export default class ShaderGallery {
     this.time = 0;
     this.activeIndex = 0;
     this.activeCameraIndex = 0;
-    this.isCameraUnlocked = false;
-    this.isMenuCollapsed = this.isSmallViewport;
+    this.isCameraUnlocked = true;
+    this.isMenuCollapsed = true;
     this.mouse = new THREE.Vector2(0.5, 0.5);
     this.isPlaying = true;
     this.textureLoader = new THREE.TextureLoader();
@@ -353,7 +413,7 @@ export default class ShaderGallery {
   }
 
   loadTextures() {
-    const textureUrls = [perro, displacement, aEnd, bEnd, freddie];
+    const textureUrls = [perro, displacement, aEnd, bEnd, dali, freddie];
 
     textureUrls.forEach((url) => {
       const texture = this.textureLoader.load(url);
@@ -367,7 +427,7 @@ export default class ShaderGallery {
 
   createScene() {
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 0.01, 20);
+    this.camera = new THREE.PerspectiveCamera(42, this.width / this.height, 0.01, 280);
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: !this.isSmallViewport,
@@ -380,7 +440,7 @@ export default class ShaderGallery {
     this.container.appendChild(this.renderer.domElement);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enabled = false;
+    this.controls.enabled = this.isCameraUnlocked;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.rotateSpeed = 0.55;
@@ -404,16 +464,16 @@ export default class ShaderGallery {
   }
 
   createStudies() {
-    const widthSegments = this.isSmallViewport ? 96 : 160;
-    const heightSegments = this.isSmallViewport ? 68 : 120;
-    this.geometry = new THREE.PlaneBufferGeometry(3.4, 2.05, widthSegments, heightSegments);
+    this.geometry = this.createGeometry(studies[this.activeIndex]);
+    this.geometryType = studies[this.activeIndex].geometry || 'plane';
 
     this.material = new THREE.ShaderMaterial({
-      vertexShader: vertex,
+      vertexShader: studies[this.activeIndex].vertex || vertex,
       fragmentShader: studies[this.activeIndex].fragment,
       side: THREE.DoubleSide,
       uniforms: {
         u_time: { value: 0 },
+        u_frame: { value: 0 },
         u_resolution: { value: new THREE.Vector2(this.width, this.height) },
         u_mouse: { value: this.mouse },
         u_intensity: { value: 0.72 },
@@ -430,6 +490,236 @@ export default class ShaderGallery {
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.scene.add(this.mesh);
     this.applyStudyUniforms(studies[this.activeIndex]);
+  }
+
+  createGeometry(study) {
+    if (study.geometry === 'torusKnot') {
+      return new THREE.TorusKnotBufferGeometry(0.72, 0.24, 240, 36);
+    }
+
+    const widthSegments = this.isSmallViewport ? 96 : 160;
+    const heightSegments = this.isSmallViewport ? 68 : 120;
+    return new THREE.PlaneBufferGeometry(3.4, 2.05, widthSegments, heightSegments);
+  }
+
+  setStudyGeometry(study) {
+    const geometryType = study.geometry || 'plane';
+
+    if (this.geometryType === geometryType) return;
+
+    const nextGeometry = this.createGeometry(study);
+    this.mesh.geometry.dispose();
+    this.mesh.geometry = nextGeometry;
+    this.geometry = nextGeometry;
+    this.geometryType = geometryType;
+    this.setCameraPreset(this.activeCameraIndex);
+  }
+
+  createGravityStudy() {
+    const size = this.isSmallViewport ? 32 : 48;
+    const particles = size * size;
+    const gpu = new GPUComputationRenderer(size, size, this.renderer);
+    const positionTexture = gpu.createTexture();
+    const velocityTexture = gpu.createTexture();
+    const positions = positionTexture.image.data;
+    const velocities = velocityTexture.image.data;
+
+    for (let i = 0; i < particles; i++) {
+      const offset = i * 4;
+      const radius = 4.5 * Math.pow(Math.random(), 1 / 3);
+      const z = 2 * Math.random() - 1;
+      const xy = Math.sqrt(1 - z * z);
+      const angle = Math.random() * Math.PI * 2;
+
+      positions[offset] = radius * xy * Math.cos(angle);
+      positions[offset + 1] = radius * xy * Math.sin(angle);
+      positions[offset + 2] = radius * z;
+      positions[offset + 3] = 1;
+
+      velocities[offset] = -positions[offset + 1] * 0.004;
+      velocities[offset + 1] = positions[offset] * 0.004;
+      velocities[offset + 2] = 0;
+      velocities[offset + 3] = 1;
+    }
+
+    const positionVariable = gpu.addVariable('u_positionTexture', gravityPosition, positionTexture);
+    const velocityVariable = gpu.addVariable('u_velocityTexture', gravityVelocity, velocityTexture);
+    gpu.setVariableDependencies(positionVariable, [positionVariable, velocityVariable]);
+    gpu.setVariableDependencies(velocityVariable, [positionVariable, velocityVariable]);
+
+    positionVariable.material.uniforms.u_dt = { value: 1.0 };
+    velocityVariable.material.uniforms.u_dt = { value: 1.0 };
+    velocityVariable.material.uniforms.u_gravity = { value: 1.0 };
+    velocityVariable.material.uniforms.u_softening = { value: 0.1 };
+
+    const error = gpu.init();
+    if (error !== null) {
+      console.error(error);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    const indices = new Float32Array(particles);
+    const placeholder = new Float32Array(particles * 3);
+
+    for (let i = 0; i < particles; i++) {
+      indices[i] = i;
+    }
+
+    geometry.setAttribute('aIndex', new THREE.BufferAttribute(indices, 1));
+    geometry.setAttribute('position', new THREE.BufferAttribute(placeholder, 3));
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader: gravityParticlesVertex,
+      fragmentShader: gravityParticles,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        u_width: { value: size },
+        u_height: { value: size },
+        u_particleSize: { value: this.isSmallViewport ? 34 : 52 },
+        u_positionTexture: { value: null },
+        u_intensity: this.material.uniforms.u_intensity,
+      },
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.position.z = -18;
+    points.visible = false;
+    this.scene.add(points);
+
+    this.gravityStudy = {
+      gpu,
+      positionVariable,
+      velocityVariable,
+      points,
+      material,
+    };
+  }
+
+  createStipplingStudy(study) {
+    const size = this.isSmallViewport ? 56 : 72;
+    const particles = size * size;
+    const gpu = new GPUComputationRenderer(size, size, this.renderer);
+    const positionTexture = gpu.createTexture();
+    const velocityTexture = gpu.createTexture();
+    const positions = positionTexture.image.data;
+    const velocities = velocityTexture.image.data;
+
+    for (let i = 0; i < particles; i++) {
+      const offset = i * 4;
+      const radius = 4.2 * Math.pow(Math.random(), 0.5);
+      const angle = Math.random() * Math.PI * 2;
+
+      positions[offset] = radius * Math.cos(angle);
+      positions[offset + 1] = radius * Math.sin(angle);
+      positions[offset + 2] = 0;
+      positions[offset + 3] = 1;
+
+      velocities[offset] = 0;
+      velocities[offset + 1] = 0;
+      velocities[offset + 2] = 0;
+      velocities[offset + 3] = 1;
+    }
+
+    const bgTexture = this.textures[study.texture] || this.textures[dali];
+    const textureOffset = new THREE.Vector2(4.8, 4.8);
+    const positionVariable = gpu.addVariable('u_positionTexture', stipplingPosition, positionTexture);
+    const velocityVariable = gpu.addVariable('u_velocityTexture', stipplingVelocity, velocityTexture);
+    gpu.setVariableDependencies(positionVariable, [positionVariable, velocityVariable]);
+    gpu.setVariableDependencies(velocityVariable, [positionVariable, velocityVariable]);
+
+    positionVariable.material.uniforms.u_dt = { value: 0.24 };
+    positionVariable.material.uniforms.u_nActiveParticles = { value: 1 };
+    positionVariable.material.uniforms.u_revealRadius = { value: 0.45 };
+    velocityVariable.material.uniforms.u_dt = { value: 0.24 };
+    velocityVariable.material.uniforms.u_nActiveParticles = { value: 1 };
+    velocityVariable.material.uniforms.u_bgTexture = { value: bgTexture };
+    velocityVariable.material.uniforms.u_textureOffset = { value: textureOffset };
+    velocityVariable.material.uniforms.u_repulsion = { value: 0.03 };
+    velocityVariable.material.uniforms.u_revealRadius = { value: 0.45 };
+
+    const error = gpu.init();
+    if (error !== null) {
+      console.error(error);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    const indices = new Float32Array(particles);
+    const placeholder = new Float32Array(particles * 3);
+
+    for (let i = 0; i < particles; i++) {
+      indices[i] = i;
+    }
+
+    geometry.setAttribute('aIndex', new THREE.BufferAttribute(indices, 1));
+    geometry.setAttribute('position', new THREE.BufferAttribute(placeholder, 3));
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader: stipplingParticlesVertex,
+      fragmentShader: stipplingParticles,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      uniforms: {
+        u_width: { value: size },
+        u_height: { value: size },
+        u_particleSize: { value: this.isSmallViewport ? 18 : 26 },
+        u_nActiveParticles: { value: 1 },
+        u_positionTexture: { value: null },
+        u_bgTexture: { value: bgTexture },
+        u_textureOffset: { value: textureOffset },
+        u_revealRadius: { value: 0.45 },
+      },
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.visible = false;
+    this.scene.add(points);
+
+    this.stipplingStudy = {
+      gpu,
+      positionVariable,
+      velocityVariable,
+      points,
+      material,
+      frames: 0,
+      particles,
+    };
+  }
+
+  setSpecialStudy(study) {
+    const isGravity = study.mode === 'particlesGravity';
+    const isStippling = study.mode === 'particlesStippling';
+
+    if (isGravity && !this.gravityStudy) {
+      this.createGravityStudy();
+    }
+
+    if (isStippling && !this.stipplingStudy) {
+      this.createStipplingStudy(study);
+    }
+
+    this.mesh.visible = !isGravity && !isStippling;
+
+    if (this.gravityStudy) {
+      this.gravityStudy.points.visible = isGravity;
+    }
+
+    if (this.stipplingStudy) {
+      this.stipplingStudy.points.visible = isStippling;
+      if (isStippling) {
+        this.stipplingStudy.frames = 0;
+      }
+    }
+
+    this.renderer.setClearColor(isStippling ? 0xf1ead8 : 0x05060a, 1);
+
+    if (isGravity || isStippling) {
+      this.geometryType = study.mode;
+      this.setCameraPreset(this.activeCameraIndex);
+    }
   }
 
   createInterface() {
@@ -449,6 +739,8 @@ export default class ShaderGallery {
         <span class="toggle-open">Fechar menu</span>
         <span class="toggle-closed">Abrir menu</span>
       </button>
+
+      <output class="atlas-camera-readout" aria-label="Posicao da camera">x 0.00 / y 0.00 / z 0.00</output>
 
       <div class="atlas-current-dock">
         <button class="atlas-step atlas-step-prev" data-step="-1" type="button" aria-label="Estudo anterior">
@@ -580,7 +872,10 @@ export default class ShaderGallery {
     this.cameraUnlock = this.root.querySelector('.camera-unlock');
     this.menuToggle = this.root.querySelector('.atlas-menu-toggle');
     this.currentCard = this.root.querySelector('.atlas-current-card');
+    this.cameraReadout = this.root.querySelector('.atlas-camera-readout');
     this.stepButtons = Array.from(this.root.querySelectorAll('.atlas-step'));
+    this.cameraUnlock.checked = this.isCameraUnlocked;
+    this.root.classList.toggle('is-camera-unlocked', this.isCameraUnlocked);
     this.syncLegacyControls(studies[this.activeIndex]);
   }
 
@@ -676,9 +971,15 @@ export default class ShaderGallery {
     this.activeIndex = index;
     const study = studies[index];
 
-    this.material.fragmentShader = study.fragment;
-    this.applyStudyUniforms(study);
-    this.material.needsUpdate = true;
+    this.setSpecialStudy(study);
+
+    if (study.mode !== 'particlesGravity' && study.mode !== 'particlesStippling') {
+      this.setStudyGeometry(study);
+      this.material.vertexShader = study.vertex || vertex;
+      this.material.fragmentShader = study.fragment;
+      this.applyStudyUniforms(study);
+      this.material.needsUpdate = true;
+    }
 
     this.cards.forEach((card, cardIndex) => {
       card.classList.toggle('is-active', cardIndex === index);
@@ -731,11 +1032,42 @@ export default class ShaderGallery {
     this.camera.lookAt(target);
     this.camera.updateProjectionMatrix();
     this.controls.target.copy(target);
+
+    if (this.geometryType === 'particlesStippling') {
+      const stipplingTarget = new THREE.Vector3(...stipplingCamera.target);
+      this.camera.fov = stipplingCamera.fov;
+      this.camera.position.set(...stipplingCamera.position);
+      this.camera.lookAt(stipplingTarget);
+      this.camera.updateProjectionMatrix();
+      this.controls.target.copy(stipplingTarget);
+      this.controls.minDistance = stipplingCamera.minDistance;
+      this.controls.maxDistance = stipplingCamera.maxDistance;
+    } else if (this.geometryType === 'particlesGravity') {
+      this.controls.minDistance = 1.4;
+      this.controls.maxDistance = 28;
+    } else {
+      this.controls.minDistance = 0.9;
+      this.controls.maxDistance = 6.0;
+    }
+
     this.controls.update();
 
     if (this.mesh) {
       this.mesh.rotation.set(...preset.meshRotation);
-      this.mesh.scale.set(preset.meshScale, preset.meshScale, 1);
+      const zScale = this.geometryType === 'plane' ? 1 : preset.meshScale;
+      this.mesh.scale.set(preset.meshScale, preset.meshScale, zScale);
+    }
+
+    if (this.gravityStudy) {
+      const scale = preset.meshScale * (this.isSmallViewport ? 0.78 : 0.95);
+      this.gravityStudy.points.rotation.set(...preset.meshRotation);
+      this.gravityStudy.points.scale.set(scale, scale, scale);
+    }
+
+    if (this.stipplingStudy) {
+      const scale = this.isSmallViewport ? 0.56 : 0.64;
+      this.stipplingStudy.points.rotation.set(0, 0, 0);
+      this.stipplingStudy.points.scale.set(scale, scale, scale);
     }
 
     if (this.cameraButtons) {
@@ -799,6 +1131,14 @@ export default class ShaderGallery {
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.material.uniforms.u_resolution.value.set(this.width, this.height);
+
+    if (this.gravityStudy) {
+      this.gravityStudy.material.uniforms.u_particleSize.value = this.isSmallViewport ? 34 : 52;
+    }
+
+    if (this.stipplingStudy) {
+      this.stipplingStudy.material.uniforms.u_particleSize.value = this.isSmallViewport ? 18 : 26;
+    }
   }
 
   updatePixelRatio() {
@@ -812,10 +1152,45 @@ export default class ShaderGallery {
     this.stats.begin();
     this.time += 0.016;
     this.material.uniforms.u_time.value = this.time;
+    this.material.uniforms.u_frame.value += 1;
+
+    if (this.activeStudy().mode === 'particlesGravity' && this.gravityStudy) {
+      this.gravityStudy.gpu.compute();
+      this.gravityStudy.material.uniforms.u_positionTexture.value = this.gravityStudy.gpu
+        .getCurrentRenderTarget(this.gravityStudy.positionVariable).texture;
+    }
+
+    if (this.activeStudy().mode === 'particlesStippling' && this.stipplingStudy) {
+      const activeParticles = Math.min(this.stipplingStudy.particles, Math.ceil(this.stipplingStudy.frames * 10));
+      const revealRadius = Math.min(stipplingCamera.revealRadius, 0.38 + this.stipplingStudy.frames * 0.018);
+      this.stipplingStudy.positionVariable.material.uniforms.u_nActiveParticles.value = activeParticles;
+      this.stipplingStudy.positionVariable.material.uniforms.u_revealRadius.value = revealRadius;
+      this.stipplingStudy.velocityVariable.material.uniforms.u_nActiveParticles.value = activeParticles;
+      this.stipplingStudy.velocityVariable.material.uniforms.u_revealRadius.value = revealRadius;
+      this.stipplingStudy.material.uniforms.u_nActiveParticles.value = activeParticles;
+      this.stipplingStudy.material.uniforms.u_revealRadius.value = revealRadius;
+      this.stipplingStudy.gpu.compute();
+      this.stipplingStudy.material.uniforms.u_positionTexture.value = this.stipplingStudy.gpu
+        .getCurrentRenderTarget(this.stipplingStudy.positionVariable).texture;
+      this.stipplingStudy.frames += 1;
+    }
+
     this.controls.update();
+    this.updateCameraReadout();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
 
     requestAnimationFrame(this.render.bind(this));
+  }
+
+  activeStudy() {
+    return studies[this.activeIndex];
+  }
+
+  updateCameraReadout() {
+    if (!this.cameraReadout) return;
+
+    const { x, y, z } = this.camera.position;
+    this.cameraReadout.textContent = `x ${x.toFixed(2)} / y ${y.toFixed(2)} / z ${z.toFixed(2)}`;
   }
 }

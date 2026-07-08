@@ -46,6 +46,13 @@ A big thank you to [Akella](https://www.youtube.com/@akella_) for their valuable
 
 We highly recommend visiting [Akella's YouTube channel](https://www.youtube.com/@akella_) for amazing tutorials, insights, and resources related to visual art and particle animations. Their dedication to sharing knowledge and passion for the subject matter have greatly influenced the quality and success of this project.
 
+Additional shader study references:
+
+- [WebGL-shaders](https://webgl-shaders.com/) is a major reference for several study categories and examples. The site states that, unless otherwise noted, its content is licensed under a Creative Commons Attribution-ShareAlike license.
+- [The Book of Shaders](https://thebookofshaders.com/) by Patricio Gonzalez Vivo and Jen Lowe is referenced as a general learning source for GLSL, fragment shaders, procedural drawing, noise, patterns, and image-processing ideas.
+
+The shaders in this repository are original studies, adaptations, and reinterpretations for this Three.js atlas.
+
 ## License
 
 The Visuals Art Particle Study project is licensed under the [MIT License](https://github.com/iagokrt/visuals-art-particle-study/blob/main/LICENSE). Feel free to use, modify, and distribute the code as per the terms of the license.

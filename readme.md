@@ -6,6 +6,15 @@
 - you can use nvm list to see what version of node you are using. then install with nvm install 14 to go with node 14
 - you can also disable scss pre-processing and go with vanilla css if you change a bit of settings
 
+## Credits and inspiration
+
+This project includes original studies and adaptations inspired by public shader-learning resources.
+
+- [WebGL-shaders](https://webgl-shaders.com/) is a major reference for several study categories and examples. The site states that, unless otherwise noted, its content is licensed under a Creative Commons Attribution-ShareAlike license.
+- [The Book of Shaders](https://thebookofshaders.com/) by Patricio Gonzalez Vivo and Jen Lowe is referenced as a general learning source for GLSL, fragment shaders, procedural drawing, noise, patterns, and image-processing ideas.
+
+Shader studies in this repository are not intended as direct copies; they are reinterpretations and learning exercises built for this Three.js atlas.
+
 
 ## Using Custom Materials!
 

@@ -198,6 +198,24 @@ a {
   transform: translateY(-1px);
 }
 
+.atlas-camera-readout {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 24;
+  padding: 6px 9px;
+  border: 1px solid rgba(208, 176, 115, 0.20);
+  border-radius: 999px;
+  background: rgba(7, 9, 14, 0.30);
+  color: rgba(255, 247, 232, 0.58);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+}
+
 .atlas-current-dock {
   position: fixed;
   left: 18px;
@@ -827,6 +845,16 @@ a {
     min-width: 78px;
     min-height: 40px;
     padding: 8px 11px;
+  }
+
+  .atlas-camera-readout {
+    top: 64px;
+    max-width: calc(100vw - 28px);
+    overflow: hidden;
+    font-size: 9px;
+    opacity: 0.72;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .atlas-current-dock,
